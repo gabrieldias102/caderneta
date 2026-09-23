@@ -90,15 +90,16 @@ Resolvido neste repositório:
 - [x] Resumo por IA limitado a 20 por usuário por dia
 - [x] Cookie `httpOnly` + `Secure` + `SameSite=Lax`, verificação de origem nas rotas que alteram dados
 - [x] Funções na mesma região do banco (`vercel.json`)
+- [x] Exportar dados e excluir conta (Configurações › Conta). A exclusão pede a senha de novo e apaga tudo em cascata.
+- [x] Cabeçalhos de segurança (`next.config.ts`): CSP, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`
 
 Ainda falta (em ordem de importância para quem guarda dados financeiros de terceiros):
 
 - [ ] **Backups**: confirme a janela de restauração (PITR) do plano do banco. Nos planos gratuitos ela é curta. Para dados reais, considere um plano pago ou um `pg_dump` agendado.
-- [ ] **Excluir conta e exportar dados** (LGPD): hoje não existe. As tabelas já usam `ON DELETE CASCADE` a partir de `users`, então excluir a conta é um `DELETE FROM users WHERE id = $1`. Falta a rota e o botão.
 - [ ] **Política de privacidade**: diga o que é guardado (lançamentos, nunca o arquivo) e o que vai para a Anthropic (só agregados do mês).
 - [ ] **Recuperação de senha**: sem ela, quem esquecer a senha perde o acesso. Precisa de um provedor de e-mail (Resend, Postmark, SES).
 - [ ] **Monitoramento**: ative os logs e alertas da Vercel. Os erros de `/api/sync` saem com `console.error("sync falhou")`.
-- [ ] **Cabeçalhos de segurança** (`Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy`) via `headers()` no `next.config.ts`.
+- [ ] **CSP mais estrita**: a atual usa `'unsafe-inline'` para manter as páginas estáticas. Para tirar, é preciso nonce no `proxy.ts` e renderização dinâmica (veja `node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md`).
 - [ ] **Custo da IA**: `/api/resumo` usa um modelo grande. Acompanhe o gasto no console da Anthropic e defina um limite de gasto lá.
 
 ## Limites da plataforma a ter em mente
@@ -115,5 +116,6 @@ Ainda falta (em ordem de importância para quem guarda dados financeiros de terc
 | `relation "users" does not exist` | Migrações não rodaram no banco desse ambiente (passo 3). |
 | `prepared statement "…" does not exist` | `DATABASE_URL` aponta para um pooler e o app não está com `NODE_ENV=production`. |
 | Login funciona e logo pede para entrar de novo | Cookie `Secure` em HTTP puro. Use sempre a URL `https://`. |
+| Algo não carrega e o console mostra `Refused to … Content Security Policy` | Recurso de outro domínio (script, fonte, API) não liberado na CSP do `next.config.ts`. |
 | `403 Origem não permitida` | Requisição de outro domínio, ou proxy na frente da Vercel reescrevendo `Host`. |
 | Resumo por IA mostra a versão local | `ANTHROPIC_API_KEY` ausente ou inválida no ambiente. |

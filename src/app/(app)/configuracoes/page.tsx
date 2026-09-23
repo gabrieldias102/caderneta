@@ -11,9 +11,10 @@ import type { Prefs } from "@/lib/types";
 type Tab = "cat" | "rules" | "alerts" | "tema";
 
 export default function Configuracoes() {
-  const { data, hoje, set, setPrefs, flash, resetDemo, sair } = useApp();
+  const { data, hoje, set, setPrefs, flash, resetDemo, sair, exportar, excluirConta } = useApp();
   const [tab, setTab] = useState<Tab>("cat");
   const [nova, setNova] = useState("");
+  const [excluir, setExcluir] = useState<{ senha: string; erro?: string; ocupado?: boolean } | null>(null);
   const { ym } = periodo(hoje);
   const txsMes = doMes(data, ym);
   const p = data.prefs;
@@ -124,6 +125,34 @@ export default function Configuracoes() {
           <div className="row" style={{ padding: "14px 0", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ marginRight: "auto", minWidth: 0 }}><div style={{ fontWeight: 600, fontSize: 14 }}>{data.nome}</div><div style={{ fontSize: 12 }} className="muted ellipsis">{data.email}</div></div>
             <button className="btn btn-secondary" onClick={sair}>Sair</button>
+          </div>
+          <div className="row" style={{ padding: "14px 0", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ marginRight: "auto" }}><div style={{ fontWeight: 600, fontSize: 14 }}>Exportar meus dados</div><div style={{ fontSize: 12 }} className="muted">Baixa lançamentos, contas, regras e preferências num arquivo JSON.</div></div>
+            <button className="btn btn-secondary" onClick={exportar}>Exportar</button>
+          </div>
+          <div className="row" style={{ padding: "14px 0", display: "grid", gap: 10 }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ marginRight: "auto" }}><div style={{ fontWeight: 600, fontSize: 14 }}>Excluir conta</div><div style={{ fontSize: 12 }} className="muted">Apaga a conta e todos os dados no servidor. Não dá para desfazer.</div></div>
+              {!excluir && <button className="btn btn-secondary" onClick={() => setExcluir({ senha: "" })}>Excluir conta</button>}
+            </div>
+            {excluir && (
+              <form style={{ display: "grid", gap: 8 }} onSubmit={async (e) => {
+                e.preventDefault();
+                setExcluir({ ...excluir, erro: undefined, ocupado: true });
+                const erro = await excluirConta(excluir.senha);
+                if (erro) setExcluir({ senha: "", erro });
+              }}>
+                <label htmlFor="senha-excluir" style={{ fontSize: 13 }}>Para confirmar, digite sua senha. Se quiser guardar uma cópia, exporte os dados antes.</label>
+                <input id="senha-excluir" className="input" type="password" autoComplete="current-password" required autoFocus
+                  value={excluir.senha} onChange={(e) => setExcluir({ ...excluir, senha: e.target.value })}
+                  aria-invalid={!!excluir.erro} aria-describedby={excluir.erro ? "erro-excluir" : undefined} />
+                {excluir.erro && <div id="erro-excluir" role="alert" style={{ fontSize: 13 }}>{excluir.erro}</div>}
+                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                  <button type="button" className="btn btn-ghost" onClick={() => setExcluir(null)} disabled={excluir.ocupado}>Cancelar</button>
+                  <button className="btn btn-primary" disabled={!excluir.senha || excluir.ocupado}>{excluir.ocupado ? "Excluindo…" : "Excluir definitivamente"}</button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

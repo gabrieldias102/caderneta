@@ -35,12 +35,15 @@ Deploy na Vercel com Postgres gerenciado (Neon): veja **[docs/DEPLOY.md](docs/DE
 - **Sincronização**: o app continua otimista — altera o estado na tela e o store (`src/lib/store.tsx`) calcula a diferença (`src/lib/sync.ts`) e envia em lote para `POST /api/sync`, que valida com Zod e grava numa transação. Sem conexão, os lotes se acumulam e são reenviados com backoff; o indicador "Tudo salvo / Salvando… / Sem conexão" fica na barra lateral.
 - **Arquivos importados**: continuam sendo lidos no navegador. O servidor recebe só os lançamentos já revisados — o arquivo nunca sai do aparelho.
 - **CSRF**: rotas que alteram dados exigem mesma origem (`Origin`/`Sec-Fetch-Site`) e o cookie é `SameSite=Lax`.
+- **Cabeçalhos**: CSP, `X-Frame-Options`, `nosniff`, `Referrer-Policy` e `Permissions-Policy` em todas as respostas (`next.config.ts`).
+- **Conta**: em Configurações › Conta é possível exportar tudo em JSON e excluir a conta (pede a senha; os dados são apagados em cascata).
 
 | Rota | O quê |
 |---|---|
 | `POST /api/auth/cadastro` · `entrar` · `sair` | Conta e sessão |
 | `GET /api/estado` | Todos os dados do usuário |
 | `POST /api/sync` | Lote de alterações (upserts e exclusões por coleção) |
+| `GET /api/conta/exportar` · `POST /api/conta/excluir` | Exportar os dados (JSON) e excluir a conta |
 | `POST /api/exemplo` | Substitui os dados pelos de exemplo |
 | `POST /api/resumo` | Resumo do mês com Claude (só agregados; 20 por usuário por dia) |
 
@@ -62,7 +65,6 @@ Deploy na Vercel com Postgres gerenciado (Neon): veja **[docs/DEPLOY.md](docs/DE
 ## O que ainda é provisório
 
 - **Recuperação de senha e verificação de e-mail**: ainda não existem (precisam de um provedor de e-mail).
-- **Excluir conta / exportar dados** (LGPD): ainda não existem.
 - **Carga inicial**: `GET /api/estado` traz todos os lançamentos do usuário; para históricos grandes, paginar por período.
 - **PDF**: leitura por texto com heurística genérica (`dd/mm descrição valor`); layouts específicos por banco e o fallback com LLM ainda não existem. OFX e CSV são os formatos confiáveis.
 - **Categorização automática**: tabela de palavras-chave, não um modelo treinado.

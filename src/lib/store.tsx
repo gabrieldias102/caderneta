@@ -256,6 +256,22 @@ function useStore() {
       await flush();
       await sairParaLogin();
     },
+    /** Baixa todos os dados em JSON, depois de salvar o que estiver pendente. */
+    exportar: async () => {
+      await flush();
+      window.location.href = "/api/conta/exportar";
+    },
+    /** Exclui a conta no servidor. Devolve a mensagem de erro, ou null se deu certo. */
+    excluirConta: async (senha: string): Promise<string | null> => {
+      const res = await fetch("/api/conta/excluir", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ senha }) })
+        .catch(() => null);
+      if (!res) return "Sem conexão — tente de novo";
+      if (!res.ok) return (await res.json().catch(() => ({}))).erro ?? "Não foi possível excluir agora";
+      clearTimeout(timer.current);
+      pendente.current = null;
+      window.location.href = "/entrar";
+      return null;
+    },
   };
 }
 

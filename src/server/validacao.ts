@@ -95,3 +95,7 @@ export const entrarSchema = z.object({
   email: z.string().trim().toLowerCase().max(200),
   senha: z.string().max(200),
 });
+
+export const excluirContaSchema = z.object({
+  senha: z.string().min(1, "Informe sua senha").max(200),
+});
