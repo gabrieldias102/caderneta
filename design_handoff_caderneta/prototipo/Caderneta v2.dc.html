@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-9d367f09-963f-4f8b-89fa-345a4e1e81a8/styles.css">
+<script src="_ds/modernist-9d367f09-963f-4f8b-89fa-345a4e1e81a8/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+<style>body{margin:0;background:var(--color-bg)}a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-600)}input[type=checkbox]{accent-color:var(--color-accent);width:18px;height:18px;margin:0;cursor:pointer}@keyframes cd-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes cd-blink{50%{opacity:.25}}</style>
+</helmet>
+<div ref="{{rootRef}}" style="min-height:{{rootMinH}};display:flex;justify-content:center;align-items:center;background:{{rootBg}};font-family:var(--font-body);color:var(--color-text)">
+<div style="position:relative;width:{{appW}};height:{{appH}};display:flex;overflow:hidden;background:var(--color-bg);box-shadow:{{appShadow}};border-radius:{{appRadius}}">
+
+<sc-if value="{{isWide}}" hint-placeholder-val="{{ true }}">
+<aside style="width:248px;flex:none;background:var(--color-card);display:flex;flex-direction:column;border-right:1px solid var(--color-divider)">
+<div style="padding:20px 20px 18px;border-bottom:1px solid var(--color-divider)">
+<div style="font-family:var(--font-heading);font-weight:800;font-size:22px;letter-spacing:-.02em">Caderneta<span style="color:var(--color-accent)">.</span></div>
+<div style="font-size:12px;color:var(--color-neutral-700)">Setembro 2026</div>
+</div>
+<nav style="display:flex;flex-direction:column;padding:8px 0;flex:1">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="8">
+<button onClick="{{n.go}}" style="display:flex;align-items:center;gap:12px;padding:11px 14px;margin:1px 10px;border-radius:var(--radius-md);border:0;background:{{n.bg}};color:{{n.color}};font:inherit;font-size:14px;font-weight:{{n.weight}};text-align:left;cursor:pointer" style-hover="background:var(--color-surface)">{{n.icon}}<span>{{n.label}}</span></button>
+</sc-for>
+</nav>
+<div style="padding:16px 20px;border-top:1px solid var(--color-divider);display:flex;flex-direction:column;gap:6px">
+<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">Sem conexão com o banco</div>
+<div style="font-size:12px;color:var(--color-neutral-700)">Tudo entra por arquivo ou à mão.</div>
+</div>
+</aside>
+</sc-if>
+
+<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+<sc-if value="{{isNarrow}}" hint-placeholder-val="{{ false }}">
+<header style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--color-divider)">
+<div style="font-family:var(--font-heading);font-weight:800;font-size:19px;margin-right:auto">Caderneta<span style="color:var(--color-accent)">.</span></div>
+<span class="tag tag-neutral">Set 2026</span>
+</header>
+</sc-if>
+
+<main ref="{{scrollRef}}" style="flex:1;min-height:0;overflow:auto;position:relative">
+<div style="padding:{{pad}};padding-bottom:40px;max-width:1180px;animation:cd-in .25s ease-out" key="{{screen}}">
+
+<!-- DASHBOARD -->
+<sc-if value="{{is.dashboard}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-bottom:20px">
+<div style="margin-right:auto"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Terça, 23 de setembro</div><h1 style="font-size:32px;margin:4px 0 0">Olá, Rafa</h1></div>
+<button class="btn btn-primary" onClick="{{goImport}}">{{I.upload}}Importar extrato</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px">
+<div style="background:var(--color-card);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:6px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">Saldo do mês</div>
+<div style="font-family:var(--font-heading);font-weight:800;font-size:var(--num-lg);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap">{{dash.saldo}}</div>
+<div style="font-size:13px;color:var(--color-neutral-700)">Receitas menos despesas, até hoje. Transferências e faturas pagas ficam de fora.</div>
+</div>
+<div style="background:var(--color-accent);color:var(--color-bg);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:6px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase">Quanto ainda posso gastar</div>
+<div style="font-family:var(--font-heading);font-weight:800;font-size:var(--num-lg);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap">{{dash.livre}}</div>
+<div style="font-size:13px">≈ {{dash.porDia}} por dia nos próximos {{dash.dias}} dias, somando o que resta dos orçamentos.</div>
+</div>
+<div style="background:var(--color-card);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">Receitas × despesas</div>
+<div style="display:grid;gap:4px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Receitas</span><strong style="font-variant-numeric:tabular-nums">{{dash.rec}}</strong></div><div style="height:10px;border-radius:99px;background:var(--color-text);width:100%"></div></div>
+<div style="display:grid;gap:4px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Despesas</span><strong style="font-variant-numeric:tabular-nums">{{dash.desp}}</strong></div><div style="height:10px;background:var(--color-neutral-200);border-radius:99px"><div style="height:100%;border-radius:99px;width:{{dash.despPct}}%;background:var(--color-accent)"></div></div></div>
+<div style="font-size:12px;color:var(--color-neutral-700)">Você gastou {{dash.despPctLabel}} do que entrou.</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-top:24px">
+<section style="background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0">Gastos por categoria</h4><button class="btn btn-ghost" onClick="{{goOrc}}">Orçamentos</button></div>
+<sc-for list="{{dash.cats}}" as="c" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+<span style="font-size:14px">{{c.name}}</span>
+<div style="height:8px;background:var(--color-neutral-200);border-radius:99px"><div style="height:100%;border-radius:99px;width:{{c.w}}%;background:{{c.fill}}"></div></div>
+<span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;min-width:90px;text-align:right">{{c.val}}</span>
+</div>
+</sc-for>
+</section>
+<section style="background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0">Alertas recentes</h4><span class="tag tag-accent">{{dash.alertCount}}</span></div>
+<sc-for list="{{alerts}}" as="a" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 0;border-bottom:1px solid var(--color-divider)">
+<div style="width:28px;height:28px;display:grid;place-items:center;border-radius:var(--r-icon);background:{{a.bg}};color:{{a.fg}}">{{a.icon}}</div>
+<div><div style="font-size:14px;font-weight:600;text-wrap:pretty">{{a.title}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{a.sub}}</div></div>
+<button class="btn btn-ghost" onClick="{{a.go}}">{{a.cta}}</button>
+</div>
+</sc-for>
+</section>
+</div>
+
+<section style="margin-top:24px;background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0">Últimos lançamentos</h4><button class="btn btn-ghost" onClick="{{goLanc}}">Ver todos</button></div>
+<sc-for list="{{dash.recent}}" as="t" hint-placeholder-count="5">
+<div onClick="{{t.open}}" style="display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--color-divider);cursor:pointer" style-hover="background:var(--color-surface)">
+<div style="width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r-icon);font-size:11px;font-weight:800;letter-spacing:.04em;background:{{t.iconBg}};color:{{t.iconFg}}">{{t.badge}}</div>
+<div style="min-width:0"><div style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:{{t.titleFg}}">{{t.desc}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{t.meta}}</div></div>
+<div style="font-size:15px;font-weight:{{t.amtW}};color:{{t.amtFg}};font-variant-numeric:tabular-nums;white-space:nowrap">{{t.amtStr}}</div>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<!-- LANÇAMENTOS -->
+<sc-if value="{{is.lanc}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-bottom:16px">
+<div style="margin-right:auto"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">{{lanc.count}} lançamentos</div><h1 style="font-size:32px;margin:4px 0 0">Lançamentos</h1></div>
+<sc-if value="{{isWide}}" hint-placeholder-val="{{ true }}"><button class="btn btn-primary" onClick="{{openQA}}">{{I.plus}}Gasto em dinheiro</button></sc-if>
+</div>
+<div style="display:grid;gap:10px;padding-bottom:16px;border-bottom:1px solid var(--color-divider)">
+<div style="position:relative"><div style="position:absolute;left:10px;top:9px;color:var(--color-neutral-600)">{{I.search}}</div><input class="input" style="padding-left:38px;min-height:40px" placeholder="Buscar por estabelecimento, pessoa ou valor" value="{{q}}" onChange="{{setQ}}"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+<div class="field"><label>Conta ou cartão</label><select class="input" value="{{fAcc}}" onChange="{{setFAcc}}"><option value="all">Todas</option><sc-for list="{{accOpts}}" as="o"><option value="{{o.id}}">{{o.name}}</option></sc-for></select></div>
+<div class="field"><label>Categoria</label><select class="input" value="{{fCat}}" onChange="{{setFCat}}"><option value="all">Todas</option><option value="none">Sem categoria</option><sc-for list="{{catOpts}}" as="o"><option value="{{o.id}}">{{o.name}}</option></sc-for></select></div>
+<div class="field"><label>Período</label><div class="seg" style="display:flex"><sc-for list="{{perOpts}}" as="p"><label class="seg-opt" style="flex:1;white-space:nowrap"><input type="radio" name="per" checked="{{p.on}}" onChange="{{p.pick}}">{{p.label}}</label></sc-for></div></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--color-neutral-700)"><span>Despesas <strong style="color:var(--color-text)">{{lanc.desp}}</strong></span><span>Receitas <strong style="color:var(--color-text)">{{lanc.rec}}</strong></span><span style="display:inline-flex;align-items:center;gap:6px">{{I.swap}}<span>Transferências e faturas não somam</span></span></div>
+</div>
+<sc-if value="{{lanc.empty}}" hint-placeholder-val="{{ false }}">
+<div style="padding:40px 0;display:grid;gap:10px;max-width:420px"><h4 style="margin:0">Nada por aqui</h4><div style="font-size:14px;color:var(--color-neutral-700)">Nenhum lançamento com esses filtros. Se for um mês ainda não importado, envie o extrato ou a fatura.</div><div><button class="btn btn-secondary" onClick="{{goImport}}">{{I.upload}}Importar arquivo</button></div></div>
+</sc-if>
+<sc-for list="{{lanc.groups}}" as="g" hint-placeholder-count="3">
+<div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;padding:18px 0 6px;border-bottom:1px solid var(--color-divider);position:sticky;top:0;background:var(--color-bg);z-index:1"><span style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase">{{g.label}}</span><span style="font-size:12px;color:var(--color-neutral-700);font-variant-numeric:tabular-nums">{{g.total}}</span></div>
+<sc-for list="{{g.items}}" as="t">
+<div style="border-bottom:1px solid var(--color-divider);background:{{t.rowBg}}">
+<div onClick="{{t.open}}" style="display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 8px;cursor:pointer" style-hover="background:var(--color-surface)">
+<div style="width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r-icon);font-size:11px;font-weight:800;letter-spacing:.04em;background:{{t.iconBg}};color:{{t.iconFg}}">{{t.badge}}</div>
+<div style="min-width:0;display:grid;gap:3px">
+<div style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:{{t.titleFg}}">{{t.desc}}</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--color-neutral-700)"><span>{{t.meta}}</span><sc-for list="{{t.tags}}" as="tg"><span class="{{tg.cls}}" style="padding:1px 7px">{{tg.label}}</span></sc-for></div>
+</div>
+<div style="font-size:15px;font-weight:{{t.amtW}};color:{{t.amtFg}};font-variant-numeric:tabular-nums;white-space:nowrap">{{t.amtStr}}</div>
+</div>
+<sc-if value="{{t.pixPending}}">
+<div style="padding:0 8px 12px 56px;display:grid;gap:8px">
+<div style="font-size:12px;font-weight:600;color:var(--color-accent-800)">Pix para pessoa física — para que foi?</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{t.quick}}" as="qc"><button class="btn btn-secondary" style="padding:5px 10px;font-size:13px;background:var(--color-bg)" onClick="{{qc.pick}}">{{qc.name}}</button></sc-for><button class="btn btn-ghost" style="font-size:13px" onClick="{{t.open}}">Outra…</button></div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+<sc-if value="{{isNarrow}}" hint-placeholder-val="{{ false }}">
+<button class="btn btn-primary" onClick="{{openQA}}" style="position:sticky;bottom:16px;margin-left:auto;margin-top:16px;display:flex;height:52px;padding:0 18px;box-shadow:var(--shadow-md);font-size:15px">{{I.plus}}Gasto em dinheiro</button>
+</sc-if>
+</sc-if>
+
+<!-- IMPORTAR -->
+<sc-if value="{{is.importar}}" hint-placeholder-val="{{ false }}">
+<div style="margin-bottom:16px"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">PDF · OFX · CSV</div><h1 style="font-size:32px;margin:4px 0 0">Importar extrato</h1></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider);margin-bottom:24px">
+<sc-for list="{{imp.steps}}" as="s" hint-placeholder-count="4">
+<div style="padding:10px 10px 10px 0;display:grid;gap:2px;border-top:3px solid {{s.bar}};margin-top:-1px"><span style="font-size:11px;color:var(--color-neutral-700)">{{s.n}}</span><span style="font-size:13px;font-weight:{{s.w}}">{{s.label}}</span></div>
+</sc-for>
+</div>
+
+<sc-if value="{{imp.isUpload}}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px">
+<div style="display:grid;gap:16px;align-content:start">
+<input type="file" accept=".pdf,.ofx,.csv" ref="{{fileRef}}" onChange="{{onFile}}" style="display:none">
+<div onClick="{{pickFile}}" onDragOver="{{onDragOver}}" onDrop="{{onDrop}}" style="border:2px dashed var(--color-neutral-300);border-radius:var(--radius-lg);padding:32px 24px;display:grid;gap:10px;cursor:pointer;background:{{imp.dropBg}}" style-hover="border-color:var(--color-accent)">
+<div style="color:var(--color-accent)">{{I.uploadLg}}</div>
+<div style="font-family:var(--font-heading);font-weight:800;font-size:20px">Arraste o arquivo aqui</div>
+<div style="font-size:14px;color:var(--color-neutral-700)">ou toque para escolher. Extrato da conta ou fatura do cartão, em PDF, OFX ou CSV. Até 10 MB.</div>
+</div>
+<sc-if value="{{imp.hasFile}}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border-radius:var(--radius-md);background:var(--color-surface)">
+<div style="width:40px;height:40px;display:grid;place-items:center;border-radius:var(--r-icon);background:var(--color-text);color:var(--color-bg);font-size:11px;font-weight:800">{{imp.fileExt}}</div>
+<div style="min-width:0"><div style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{imp.fileName}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{imp.fileSize}} · {{imp.fileHint}}</div></div>
+<button class="btn btn-icon" onClick="{{clearFile}}" aria-label="Remover arquivo">{{I.x}}</button>
+</div>
+</sc-if>
+<div style="display:grid;gap:6px"><div style="font-size:12px;color:var(--color-neutral-700)">Sem arquivo à mão? Teste com um exemplo:</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{samples}}" as="s"><button class="btn btn-secondary" style="font-size:13px;padding:6px 10px" onClick="{{s.pick}}">{{s.name}}</button></sc-for></div></div>
+</div>
+<div style="display:grid;gap:12px;align-content:start">
+<div style="border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0">Para onde vão os lançamentos?</h4></div>
+<sc-for list="{{imp.dests}}" as="d" hint-placeholder-count="5">
+<label class="radio" style="display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)"><input type="radio" name="dest" checked="{{d.on}}" onChange="{{d.pick}}"><span class="dot"></span><span><span style="display:block;font-weight:600">{{d.name}}</span><span style="font-size:12px;color:var(--color-neutral-700)">{{d.sub}}</span></span><span class="tag tag-neutral">{{d.kindLabel}}</span></label>
+</sc-for>
+<button class="btn btn-primary btn-block" style="min-height:48px;font-size:15px" disabled="{{imp.cantProcess}}" onClick="{{startProcessing}}">Ler arquivo e sugerir categorias{{I.arrow}}</button>
+<div style="font-size:12px;color:var(--color-neutral-700)">O arquivo é lido e descartado. Nada é enviado ao banco e nada é lançado antes da sua revisão.</div>
+</div>
+</div>
+<section style="margin-top:24px;background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h5 style="margin:0">Importações anteriores</h5></div>
+<sc-for list="{{history}}" as="h" hint-placeholder-count="3">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider);font-size:14px"><div style="min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{h.file}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{h.dest}}</div></div><div style="text-align:right;font-size:12px;color:var(--color-neutral-700)"><div>{{h.date}}</div><div>{{h.n}} lançamentos</div></div></div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{imp.isProcessing}}" hint-placeholder-val="{{ false }}">
+<div style="max-width:560px;display:grid;gap:20px">
+<div style="font-size:14px;color:var(--color-neutral-700)">{{imp.fileName}} → {{imp.destName}}</div>
+<div style="font-family:var(--font-heading);font-weight:800;font-size:72px;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums">{{imp.progress}}<span style="color:var(--color-accent)">%</span></div>
+<div style="height:6px;background:var(--color-neutral-200);border-radius:99px"><div style="height:100%;border-radius:99px;width:{{imp.progress}}%;background:var(--color-accent);transition:width .12s linear"></div></div>
+<div style="border-top:1px solid var(--color-divider)">
+<sc-for list="{{imp.stages}}" as="s" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:24px minmax(0,1fr);gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--color-divider);color:{{s.fg}}"><div style="width:20px;height:20px;display:grid;place-items:center;border-radius:var(--r-icon);background:{{s.bg}};color:var(--color-bg);animation:{{s.anim}}">{{s.icon}}</div><div><div style="font-size:14px;font-weight:600">{{s.label}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{s.sub}}</div></div></div>
+</sc-for>
+</div>
+<div><button class="btn btn-secondary" onClick="{{cancelImport}}">Cancelar</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{imp.isReview}}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+<sc-for list="{{rev.stats}}" as="s" hint-placeholder-count="4"><div style="background:var(--color-card);border-radius:var(--radius-lg);padding:14px 16px"><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;line-height:1;color:{{s.fg}}">{{s.v}}</div><div style="font-size:12px;color:var(--color-neutral-700);margin-top:4px">{{s.label}}</div></div></sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">
+<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked="{{rev.allSel}}" onChange="{{rev.toggleAll}}">Selecionar todos</label>
+<div class="seg" style="margin-left:auto"><sc-for list="{{rev.filters}}" as="f"><label class="seg-opt"><input type="radio" name="rf" checked="{{f.on}}" onChange="{{f.pick}}">{{f.label}}</label></sc-for></div>
+</div>
+<sc-if value="{{rev.hasSel}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 12px;border-radius:var(--radius-md);background:var(--color-text);color:var(--color-bg);position:sticky;top:0;z-index:2">
+<strong style="font-size:14px;margin-right:auto">{{rev.selCount}} selecionados</strong>
+<select class="input" style="width:auto;min-width:180px;background:var(--color-bg)" value="" onChange="{{rev.bulkCat}}"><option value="">Mudar categoria…</option><sc-for list="{{catOpts}}" as="o"><option value="{{o.id}}">{{o.name}}</option></sc-for></select>
+<button class="btn btn-secondary" style="color:var(--color-bg);border-color:var(--color-neutral-500)" onClick="{{rev.bulkIgnore}}">Não importar</button>
+<button class="btn btn-icon" style="color:var(--color-bg)" onClick="{{rev.clearSel}}" aria-label="Limpar seleção">{{I.x}}</button>
+</div>
+</sc-if>
+<sc-for list="{{rev.rows}}" as="r" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:24px minmax(0,1fr);gap:12px;padding:14px 8px;border-bottom:1px solid var(--color-divider);background:{{r.bg}};opacity:{{r.op}}">
+<input type="checkbox" checked="{{r.selected}}" onChange="{{r.onSel}}" style="margin-top:3px">
+<div style="display:grid;gap:10px;min-width:0">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:baseline">
+<div style="min-width:0"><div style="font-size:15px;font-weight:600;color:{{r.titleFg}}">{{r.m}}</div><div style="font-size:11px;color:var(--color-neutral-700);font-family:ui-monospace,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{r.date}} · {{r.desc}}</div></div>
+<div style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;color:{{r.amtFg}}">{{r.amtStr}}</div>
+</div>
+<sc-if value="{{r.dup}}">
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:8px 10px;border-radius:var(--radius-md);background:var(--color-card);border:1px solid var(--color-divider);font-size:13px"><span style="color:var(--color-accent)">{{I.alert}}</span><span style="margin-right:auto">{{r.dupNote}}</span><button class="btn btn-ghost" style="font-size:13px" onClick="{{r.toggleIgnore}}">{{r.ignoreCta}}</button></div>
+</sc-if>
+<sc-if value="{{r.neutral}}">
+<div style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--color-neutral-700)">{{I.swap}}Pagamento da fatura — não conta como despesa</div>
+</sc-if>
+<sc-if value="{{r.categorizable}}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:center">
+<select class="input" value="{{r.cat}}" onChange="{{r.onCat}}" style="border-color:{{r.selBorder}}"><option value="">Escolher categoria…</option><sc-for list="{{catOpts}}" as="o"><option value="{{o.id}}">{{o.name}}</option></sc-for></select>
+<div style="display:flex;align-items:center;gap:8px;font-size:12px">
+<sc-if value="{{showMeter}}"><div style="display:flex;gap:2px"><div style="width:14px;height:8px;background:{{r.b1}}"></div><div style="width:14px;height:8px;background:{{r.b2}}"></div><div style="width:14px;height:8px;background:{{r.b3}}"></div></div></sc-if>
+<span style="font-weight:600;color:{{r.confFg}}">{{r.confLabel}}</span><span style="color:var(--color-neutral-700)">{{r.confSub}}</span>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{r.hasTags}}"><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{r.tags}}" as="tg"><span class="{{tg.cls}}">{{tg.label}}</span></sc-for></div></sc-if>
+</div>
+</div>
+</sc-for>
+<div style="position:sticky;bottom:0;background:var(--color-bg);border-top:1px solid var(--color-divider);padding:14px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:8px;z-index:2">
+<div style="margin-right:auto"><div style="font-size:14px;font-weight:600">{{rev.incCount}} lançamentos serão importados</div><div style="font-size:12px;color:var(--color-neutral-700)">Despesas {{rev.incTotal}} · {{rev.ignCount}} ignorados · {{rev.pendCount}} sem categoria</div></div>
+<button class="btn btn-secondary" onClick="{{cancelImport}}">Descartar</button>
+<button class="btn btn-primary" style="min-height:44px" onClick="{{confirmImport}}">Confirmar importação{{I.check}}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{imp.isDone}}" hint-placeholder-val="{{ false }}">
+<div style="max-width:620px;display:grid;gap:20px">
+<div style="width:56px;height:56px;display:grid;place-items:center;border-radius:var(--r-icon);background:var(--color-accent);color:var(--color-bg)">{{I.checkLg}}</div>
+<h2 style="margin:0">{{imp.doneTitle}}</h2>
+<div style="border-top:1px solid var(--color-divider)"><sc-for list="{{imp.doneStats}}" as="s"><div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--color-divider);font-size:14px"><span>{{s.label}}</span><strong>{{s.v}}</strong></div></sc-for></div>
+<div style="display:flex;flex-wrap:wrap;gap:10px"><button class="btn btn-primary" onClick="{{goLanc}}">Ver lançamentos{{I.arrow}}</button><button class="btn btn-secondary" onClick="{{cancelImport}}">Importar outro arquivo</button></div>
+</div>
+</sc-if>
+</sc-if>
+
+<!-- ORÇAMENTOS -->
+<sc-if value="{{is.orc}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-bottom:20px">
+<div style="margin-right:auto"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Setembro · faltam {{dash.dias}} dias</div><h1 style="font-size:32px;margin:4px 0 0">Orçamentos</h1></div>
+<button class="btn btn-secondary" onClick="{{toggleEditB}}">{{orc.editLabel}}</button>
+</div>
+<div style="display:grid;gap:8px;padding:20px;border-radius:var(--radius-lg);background:var(--color-surface);margin-bottom:24px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline"><span style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">{{orc.spent}} <span style="font-size:16px;color:var(--color-neutral-700)">de {{orc.limit}}</span></span><span style="font-size:14px">{{orc.pctLabel}} usado</span></div>
+<div style="height:12px;background:var(--color-neutral-300);border-radius:99px;position:relative"><div style="height:100%;border-radius:99px;width:{{orc.pct}}%;background:var(--color-text)"></div><div style="position:absolute;left:{{orc.timePct}}%;top:-4px;bottom:-4px;width:2px;background:var(--color-accent)"></div></div>
+<div style="font-size:12px;color:var(--color-neutral-700)">A linha vermelha marca onde o mês está ({{orc.timePct}}%). Gasto à esquerda dela = no ritmo.</div>
+</div>
+<sc-for list="{{orc.rows}}" as="b" hint-placeholder-count="8">
+<div style="display:grid;gap:8px;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline">
+<span style="font-size:16px;font-weight:600;margin-right:auto">{{b.name}}</span>
+<sc-if value="{{b.hasTag}}"><span class="{{b.tagCls}}">{{b.tag}}</span></sc-if>
+<sc-if value="{{b.editing}}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:6px;font-size:13px">Limite R$ <input class="input" style="width:110px" inputMode="decimal" value="{{b.limitRaw}}" onChange="{{b.setLimit}}"></div></sc-if>
+<sc-if value="{{b.notEditing}}" hint-placeholder-val="{{ true }}"><span style="font-size:14px;font-variant-numeric:tabular-nums"><strong>{{b.spent}}</strong> <span style="color:var(--color-neutral-700)">/ {{b.limit}}</span></span></sc-if>
+</div>
+<div style="height:8px;background:var(--color-neutral-200);border-radius:99px;position:relative"><div style="height:100%;border-radius:99px;width:{{b.w}}%;background:{{b.fill}}"></div><div style="position:absolute;left:{{alertPct}}%;top:-3px;bottom:-3px;width:1px;background:var(--color-text)"></div></div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-neutral-700)"><span style="color:{{b.leftFg}}">{{b.left}}</span><span>{{b.pctLabel}}</span></div>
+</div>
+</sc-for>
+<div style="font-size:12px;color:var(--color-neutral-700);margin-top:12px">O traço fino em cada barra marca o aviso de {{alertPct}}% — ajuste em Configurações › Alertas.</div>
+</sc-if>
+
+<!-- RELATÓRIOS -->
+<sc-if value="{{is.rel}}" hint-placeholder-val="{{ false }}">
+<div style="margin-bottom:20px"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Abril – setembro 2026</div><h1 style="font-size:32px;margin:4px 0 0">Relatórios</h1></div>
+<section style="background:var(--color-accent-100);color:var(--color-text);border-radius:var(--radius-lg);padding:24px;display:grid;gap:12px;margin-bottom:32px">
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-right:auto">Resumo de setembro · escrito por IA</span><button class="btn btn-secondary" style="font-size:13px;padding:5px 10px" onClick="{{regenSummary}}" disabled="{{summaryLoading}}">{{summaryCta}}</button></div>
+<p style="font-size:19px;line-height:1.5;margin:0;max-width:760px;text-wrap:pretty">{{summary}}</p>
+<div style="font-size:11px;color:var(--color-neutral-700)">Gerado a partir dos seus lançamentos. Pode conter imprecisões — os números abaixo são a referência.</div>
+</section>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:32px">
+<section style="background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0;margin-right:auto">Mês a mês</h4><span style="display:flex;gap:6px;align-items:center;font-size:12px"><span style="width:10px;height:10px;background:var(--color-text)"></span>Receitas</span><span style="display:flex;gap:6px;align-items:center;font-size:12px"><span style="width:10px;height:10px;background:var(--color-accent)"></span>Despesas</span></div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;height:200px;align-items:end;padding-top:16px;border-bottom:1px solid var(--color-divider)">
+<sc-for list="{{rel.months}}" as="m" hint-placeholder-count="6"><div style="display:flex;gap:3px;align-items:end;height:100%"><div style="flex:1;height:{{m.rH}}%;border-radius:8px 8px 3px 3px;background:var(--color-text)"></div><div style="flex:1;height:{{m.dH}}%;border-radius:8px 8px 3px 3px;background:var(--color-accent)"></div></div></sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding-top:6px"><sc-for list="{{rel.months}}" as="m"><div style="font-size:11px"><div style="font-weight:600;text-transform:uppercase;letter-spacing:.06em">{{m.m}}</div><div style="color:var(--color-neutral-700);font-variant-numeric:tabular-nums">{{m.saldo}}</div></div></sc-for></div>
+<div style="font-size:12px;color:var(--color-neutral-700);margin-top:8px">Abaixo de cada mês: o que sobrou. Setembro vai até o dia 23.</div>
+</section>
+<section style="background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0">Evolução por categoria</h4></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;padding:12px 0"><sc-for list="{{rel.catTabs}}" as="c"><button class="{{c.cls}}" style="font-size:13px;padding:5px 10px" onClick="{{c.pick}}">{{c.name}}</button></sc-for></div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;height:150px;align-items:end;border-bottom:1px solid var(--color-divider)">
+<sc-for list="{{rel.catBars}}" as="m"><div style="display:flex;flex-direction:column;justify-content:end;height:100%;gap:4px"><span style="font-size:11px;font-variant-numeric:tabular-nums">{{m.v}}</span><div style="height:{{m.h}}%;border-radius:8px 8px 3px 3px;background:{{m.fill}}"></div></div></sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding-top:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em"><sc-for list="{{rel.catBars}}" as="m"><span>{{m.m}}</span></sc-for></div>
+<div style="font-size:13px;margin-top:10px">{{rel.catNote}}</div>
+</section>
+</div>
+<section style="margin-top:24px;background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0">Maiores estabelecimentos</h4></div>
+<table class="table"><thead><tr><th style="width:32px">#</th><th>Estabelecimento</th><th>Compras</th><th style="text-align:right">Total</th></tr></thead><tbody>
+<sc-for list="{{rel.top}}" as="t" hint-placeholder-count="6"><tr><td style="color:var(--color-neutral-700)">{{t.rank}}</td><td><div style="font-weight:600">{{t.name}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{t.cat}}</div></td><td>{{t.n}}</td><td style="text-align:right;font-weight:600;font-variant-numeric:tabular-nums">{{t.total}}</td></tr></sc-for>
+</tbody></table>
+</section>
+</sc-if>
+
+<!-- CONTAS -->
+<sc-if value="{{is.contas}}" hint-placeholder-val="{{ false }}">
+<div style="margin-bottom:20px"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Saldo total {{contas.total}}</div><h1 style="font-size:32px;margin:4px 0 0">Contas e cartões</h1></div>
+<h5 style="margin:0 0 10px">Contas</h5>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:32px">
+<sc-for list="{{contas.accs}}" as="a" hint-placeholder-count="3"><div style="background:var(--color-card);border-radius:var(--radius-lg);padding:18px;display:grid;gap:4px"><div style="font-weight:600">{{a.name}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{a.sub}}</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;margin-top:8px">{{a.bal}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{a.last}}</div></div></sc-for>
+</div>
+<h5 style="margin:0 0 10px">Cartões de crédito</h5>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:32px">
+<sc-for list="{{contas.cards}}" as="c" hint-placeholder-count="2"><div style="background:var(--color-card);border-radius:var(--radius-lg);padding:18px;display:grid;gap:10px">
+<div style="display:flex;gap:8px;align-items:baseline"><div style="margin-right:auto"><div style="font-weight:600">{{c.name}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{c.sub}}</div></div><span class="{{c.dueCls}}" style="display:inline-flex;gap:4px"><span>Vence</span><span>{{c.vence}}</span></span></div>
+<div><div style="font-size:12px;color:var(--color-neutral-700)">Fatura atual · fecha {{c.fecha}}</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">{{c.fatura}}</div></div>
+<div style="height:6px;background:var(--color-neutral-200);border-radius:99px"><div style="height:100%;border-radius:99px;width:{{c.usoPct}}%;background:var(--color-text)"></div></div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-neutral-700)"><span>{{c.disp}} disponível</span><span>Limite {{c.limite}}</span></div>
+<button class="btn btn-secondary" style="justify-content:flex-start" onClick="{{c.imp}}">{{I.upload}}Importar fatura</button>
+</div></sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0;margin-right:auto">Parcelas nas próximas faturas</h4><span style="font-size:13px">{{contas.projTotal}} já comprometidos</span></div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;height:140px;align-items:end;padding-top:12px;border-bottom:1px solid var(--color-divider)">
+<sc-for list="{{contas.proj}}" as="p" hint-placeholder-count="6"><div style="display:flex;flex-direction:column;justify-content:end;height:100%;gap:4px"><span style="font-size:11px;font-variant-numeric:tabular-nums">{{p.v}}</span><div style="height:{{p.h}}%;border-radius:8px 8px 3px 3px;background:var(--color-accent-100);border:1.5px dashed var(--color-accent)"></div></div></sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding-top:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em"><sc-for list="{{contas.proj}}" as="p"><span>{{p.m}}</span></sc-for></div>
+<table class="table" style="margin-top:16px"><thead><tr><th>Compra</th><th>Parcela</th><th style="text-align:right">Por mês</th><th style="text-align:right">Falta pagar</th></tr></thead><tbody>
+<sc-for list="{{contas.inst}}" as="i"><tr><td><div style="font-weight:600">{{i.desc}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{i.acc}} · termina em {{i.end}}</div></td><td><span class="tag tag-outline">{{i.label}}</span></td><td style="text-align:right;font-variant-numeric:tabular-nums">{{i.per}}</td><td style="text-align:right;font-weight:600;font-variant-numeric:tabular-nums">{{i.left}}</td></tr></sc-for>
+</tbody></table>
+</sc-if>
+
+<!-- COMPARTILHADAS -->
+<sc-if value="{{is.comp}}" hint-placeholder-val="{{ false }}">
+<div style="margin-bottom:20px"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Apê Vila Madalena · 2 pessoas</div><h1 style="font-size:32px;margin:4px 0 0">Contas compartilhadas</h1></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:32px">
+<div style="background:{{comp.heroBg}};color:{{comp.heroFg}};border-radius:var(--radius-lg);padding:22px;display:grid;gap:10px;align-content:start">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase">Quem deve quanto</div>
+<div style="font-family:var(--font-heading);font-weight:800;font-size:30px;line-height:1.1;text-wrap:pretty">{{comp.headline}}</div>
+<div style="font-size:13px">{{comp.sub}}</div>
+<sc-if value="{{comp.canSettle}}"><div><button class="btn" style="background:var(--color-bg);color:var(--color-text)" onClick="{{settle}}">Registrar acerto via Pix</button></div></sc-if>
+</div>
+<div style="background:var(--color-card);border-radius:var(--radius-lg);padding:22px;display:grid;gap:12px;align-content:start">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">Divisão (você / Ana)</div>
+<div class="seg" style="display:flex"><sc-for list="{{comp.splits}}" as="s"><label class="seg-opt" style="flex:1"><input type="radio" name="split" checked="{{s.on}}" onChange="{{s.pick}}">{{s.label}}</label></sc-for></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+<div><div style="color:var(--color-neutral-700)">Você pagou</div><div style="font-weight:800;font-size:18px;font-variant-numeric:tabular-nums">{{comp.mePaid}}</div><div style="color:var(--color-neutral-700)">sua parte {{comp.meShare}}</div></div>
+<div><div style="color:var(--color-neutral-700)">Ana pagou</div><div style="font-weight:800;font-size:18px;font-variant-numeric:tabular-nums">{{comp.anaPaid}}</div><div style="color:var(--color-neutral-700)">parte dela {{comp.anaShare}}</div></div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px">
+<section style="background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="display:flex;align-items:baseline;border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0;margin-right:auto">Lançamentos compartilhados</h4><span style="font-size:13px">{{comp.total}}</span></div>
+<sc-for list="{{comp.items}}" as="t" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--color-divider)"><div style="width:32px;height:32px;display:grid;place-items:center;border-radius:var(--r-icon);font-size:12px;font-weight:800;background:{{t.bg}};color:{{t.fg}}">{{t.who}}</div><div style="min-width:0"><div style="font-weight:600;font-size:14px">{{t.desc}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{t.meta}}</div></div><div style="text-align:right;font-variant-numeric:tabular-nums"><div style="font-weight:600;font-size:14px">{{t.amt}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{t.split}}</div></div></div></sc-for>
+<div style="font-size:12px;color:var(--color-neutral-700);margin-top:10px">Para incluir um gasto, abra-o em Lançamentos e marque “Compartilhado”.</div>
+</section>
+<section style="background:var(--color-card);border-radius:var(--radius-lg);padding:16px 18px">
+<div style="border-bottom:1px solid var(--color-divider);padding-bottom:8px"><h4 style="margin:0">Pessoas</h4></div>
+<sc-for list="{{comp.members}}" as="p"><div style="display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--color-divider)"><div style="width:32px;height:32px;display:grid;place-items:center;border-radius:var(--r-icon);font-size:12px;font-weight:800;background:{{p.bg}};color:{{p.fg}}">{{p.ini}}</div><div><div style="font-weight:600;font-size:14px">{{p.name}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{p.sub}}</div></div><span class="{{p.tagCls}}">{{p.status}}</span></div></sc-for>
+<div style="display:grid;gap:8px;margin-top:16px">
+<div class="field"><label>Convidar por e-mail ou celular</label><div style="display:flex;gap:8px"><input class="input" placeholder="nome@email.com" value="{{inviteEmail}}" onChange="{{setInvite}}"><button class="btn btn-primary" disabled="{{comp.cantInvite}}" onClick="{{sendInvite}}">Convidar</button></div></div>
+<button class="btn btn-ghost" style="justify-content:flex-start" onClick="{{copyLink}}">{{I.link}}Copiar link de convite</button>
+</div>
+</section>
+</div>
+</sc-if>
+
+<!-- CONFIG -->
+<sc-if value="{{is.config}}" hint-placeholder-val="{{ false }}">
+<div style="margin-bottom:16px"><h1 style="font-size:32px;margin:0">Configurações</h1></div>
+<div class="seg" style="display:flex;margin-bottom:20px;max-width:480px"><sc-for list="{{cfgTabs}}" as="c"><label class="seg-opt" style="flex:1"><input type="radio" name="cfg" checked="{{c.on}}" onChange="{{c.pick}}">{{c.label}}</label></sc-for></div>
+<sc-if value="{{cfg.isCat}}" hint-placeholder-val="{{ true }}">
+<div style="max-width:640px">
+<div style="display:flex;gap:8px;margin-bottom:12px"><input class="input" placeholder="Nova categoria" value="{{newCat}}" onChange="{{setNewCat}}"><button class="btn btn-primary" disabled="{{cfg.cantAdd}}" onClick="{{addCat}}">{{I.plus}}Adicionar</button></div>
+<div style="border-top:1px solid var(--color-divider)"><sc-for list="{{cfg.cats}}" as="c"><div style="display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--color-divider)"><div style="width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r-icon);background:var(--color-surface);font-size:11px;font-weight:800">{{c.abbr}}</div><div><div style="font-weight:600;font-size:14px">{{c.name}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{c.sub}}</div></div><span style="font-size:13px;font-variant-numeric:tabular-nums">{{c.limit}}</span></div></sc-for></div>
+</div>
+</sc-if>
+<sc-if value="{{cfg.isRules}}" hint-placeholder-val="{{ false }}">
+<div style="max-width:720px">
+<div style="font-size:14px;color:var(--color-neutral-700);margin-bottom:12px">Regras são criadas quando você corrige uma categoria e escolhe “aplicar sempre”. Elas rodam antes da sugestão automática.</div>
+<div style="border-top:1px solid var(--color-divider)"><sc-for list="{{cfg.rules}}" as="r"><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--color-divider)"><div><div style="font-size:14px">Quando o estabelecimento for <strong>{{r.m}}</strong> → <strong>{{r.cat}}</strong></div><div style="font-size:12px;color:var(--color-neutral-700)">{{r.origem}}</div></div><button class="btn btn-icon" aria-label="Excluir regra" onClick="{{r.del}}">{{I.trash}}</button></div></sc-for></div>
+</div>
+</sc-if>
+<sc-if value="{{cfg.isAlerts}}" hint-placeholder-val="{{ false }}">
+<div style="max-width:640px;border-top:1px solid var(--color-divider)">
+<div style="padding:14px 0;border-bottom:1px solid var(--color-divider);display:grid;gap:10px"><div style="display:flex;gap:12px;align-items:center"><div style="margin-right:auto"><div style="font-weight:600;font-size:14px">Avisar ao atingir parte do orçamento</div><div style="font-size:12px;color:var(--color-neutral-700)">Ex.: “você já usou 80% do orçamento de Delivery”</div></div><input type="checkbox" checked="{{prefs.budget}}" onChange="{{togBudget}}"></div><div class="seg"><sc-for list="{{thrOpts}}" as="t"><label class="seg-opt"><input type="radio" name="thr" checked="{{t.on}}" onChange="{{t.pick}}">{{t.label}}</label></sc-for></div></div>
+<sc-for list="{{prefRows}}" as="p"><div style="display:flex;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--color-divider)"><div style="margin-right:auto"><div style="font-weight:600;font-size:14px">{{p.label}}</div><div style="font-size:12px;color:var(--color-neutral-700)">{{p.sub}}</div></div><input type="checkbox" checked="{{p.on}}" onChange="{{p.tog}}"></div></sc-for>
+</div>
+</sc-if>
+</sc-if>
+
+</div>
+</main>
+
+<sc-if value="{{isNarrow}}" hint-placeholder-val="{{ false }}">
+<nav style="display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--color-divider);background:var(--color-card)">
+<sc-for list="{{tabs}}" as="n" hint-placeholder-count="5">
+<button onClick="{{n.go}}" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 10px;min-height:56px;border:0;background:{{n.bg}};color:{{n.color}};font:inherit;font-size:11px;font-weight:{{n.weight}};cursor:pointer">{{n.icon}}<span>{{n.label}}</span></button>
+</sc-for>
+</nav>
+</sc-if>
+</div>
+
+<!-- MAIS (mobile) -->
+<sc-if value="{{more}}" hint-placeholder-val="{{ false }}">
+<div onClick="{{closeAll}}" style="position:absolute;inset:0;background:rgba(6,8,14,.55);display:flex;align-items:flex-end;z-index:20">
+<div onClick="{{stop}}" style="width:100%;background:var(--color-bg);border-radius:24px 24px 0 0;padding:8px 0 16px;animation:cd-in .2s ease-out">
+<sc-for list="{{moreItems}}" as="n"><button onClick="{{n.go}}" style="display:flex;width:100%;align-items:center;gap:14px;padding:14px 20px;border:0;border-bottom:1px solid var(--color-divider);background:transparent;font:inherit;font-size:16px;color:var(--color-text);cursor:pointer;text-align:left">{{n.icon}}{{n.label}}</button></sc-for>
+</div>
+</div>
+</sc-if>
+
+<!-- DETALHE -->
+<sc-if value="{{hasDetail}}" hint-placeholder-val="{{ false }}">
+<div class="dialog-backdrop" style="background:rgba(6,8,14,.55);position:absolute;z-index:20" onClick="{{closeAll}}">
+<div class="dialog" onClick="{{stop}}" style="background:var(--color-card);max-height:90%;overflow:auto;animation:cd-in .2s ease-out">
+<div style="display:flex;gap:8px;align-items:start"><div style="margin-right:auto"><div class="card-kicker">{{det.kicker}}</div><div class="dialog-title">{{det.desc}}</div></div><button class="btn btn-icon" onClick="{{closeAll}}" aria-label="Fechar">{{I.x}}</button></div>
+<div style="font-family:var(--font-heading);font-weight:800;font-size:36px;line-height:1;font-variant-numeric:tabular-nums;color:{{det.amtFg}}">{{det.amtStr}}</div>
+<div style="border-top:1px solid var(--color-divider)"><sc-for list="{{det.rows}}" as="r"><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-divider);font-size:14px"><span style="color:var(--color-neutral-700)">{{r.k}}</span><span>{{r.v}}</span></div></sc-for></div>
+<sc-if value="{{det.neutral}}"><div style="display:flex;gap:10px;padding:12px;border-radius:var(--radius-md);background:var(--color-neutral-200);font-size:13px">{{I.swap}}<span>{{det.neutralNote}}</span></div></sc-if>
+<sc-if value="{{det.categorizable}}">
+<div class="field"><label>Categoria</label><select class="input" value="{{det.cat}}" onChange="{{det.onCat}}"><option value="">Sem categoria</option><sc-for list="{{catOpts}}" as="o"><option value="{{o.id}}">{{o.name}}</option></sc-for></select></div>
+<label style="display:flex;gap:10px;align-items:center;font-size:14px;cursor:pointer"><input type="checkbox" checked="{{det.shared}}" onChange="{{det.togShared}}">Compartilhado com Ana (Apê Vila Madalena)</label>
+</sc-if>
+<sc-if value="{{det.hasInst}}">
+<div><div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Próximas parcelas</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:12px"><sc-for list="{{det.inst}}" as="p"><div style="background:{{p.bg}};color:{{p.fg}};border-radius:var(--radius-sm);padding:8px"><div style="font-size:11px;font-weight:600">{{p.n}}</div><div style="font-size:11px">{{p.m}}</div></div></sc-for></div></div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<!-- ADIÇÃO RÁPIDA -->
+<sc-if value="{{hasQA}}" hint-placeholder-val="{{ false }}">
+<div class="dialog-backdrop" style="background:rgba(6,8,14,.55);position:absolute;z-index:20" onClick="{{closeAll}}">
+<div class="dialog" onClick="{{stop}}" style="background:var(--color-card);max-height:92%;overflow:auto;animation:cd-in .2s ease-out">
+<div style="display:flex;align-items:start"><div style="margin-right:auto"><div class="card-kicker">Adição rápida</div><div class="dialog-title">Gasto em dinheiro</div></div><button class="btn btn-icon" onClick="{{closeAll}}" aria-label="Fechar">{{I.x}}</button></div>
+<div style="display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--color-divider);padding-bottom:4px"><span style="font-size:22px;font-weight:800">R$</span><input autoFocus="{{ true }}" inputMode="decimal" placeholder="0,00" value="{{qa.amt}}" onChange="{{qa.setAmt}}" style="border:0;background:transparent;font-family:var(--font-heading);font-weight:800;font-size:40px;width:100%;color:var(--color-text);outline:none;font-variant-numeric:tabular-nums"></div>
+<div class="field"><label>Descrição</label><input class="input" placeholder="Ex.: feira, café, estacionamento" value="{{qa.desc}}" onChange="{{qa.setDesc}}"></div>
+<div class="field"><label>Categoria</label><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{qa.cats}}" as="c"><button class="{{c.cls}}" style="font-size:13px;padding:6px 10px" onClick="{{c.pick}}">{{c.name}}</button></sc-for></div></div>
+<div class="field"><label>Saiu de</label><select class="input" value="{{qa.acc}}" onChange="{{qa.setAcc}}"><sc-for list="{{accOpts}}" as="o"><option value="{{o.id}}">{{o.name}}</option></sc-for></select></div>
+<div class="dialog-actions"><button class="btn btn-secondary" onClick="{{closeAll}}">Cancelar</button><button class="btn btn-primary" disabled="{{qa.invalid}}" onClick="{{qa.save}}">Salvar{{I.check}}</button></div>
+</div>
+</div>
+</sc-if>
+
+<!-- REGRA -->
+<sc-if value="{{hasRule}}" hint-placeholder-val="{{ false }}">
+<div class="dialog-backdrop" style="background:rgba(6,8,14,.55);position:absolute;z-index:30">
+<div class="dialog" style="background:var(--color-card);animation:cd-in .2s ease-out">
+<div class="card-kicker">Nova regra?</div>
+<div class="dialog-title">Aplicar sempre para “{{rule.m}}”?</div>
+<div class="dialog-body">Daqui pra frente, tudo de <strong>{{rule.m}}</strong> entra como <strong>{{rule.cat}}</strong> — sem sugestão, direto. {{rule.others}}</div>
+<div class="dialog-actions"><button class="btn btn-secondary" onClick="{{ruleNo}}">Só desta vez</button><button class="btn btn-primary" onClick="{{ruleYes}}">Aplicar sempre</button></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:16px;right:16px;bottom:80px;display:flex;justify-content:center;z-index:40;pointer-events:none"><div style="background:var(--color-text);color:var(--color-bg);border-radius:999px;padding:12px 18px;font-size:14px;box-shadow:var(--shadow-lg);display:flex;gap:10px;align-items:center;animation:cd-in .2s ease-out">{{I.check}}{{toast}}</div></div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;modo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Claro&quot;,&quot;Escuro&quot;],&quot;default&quot;:&quot;Claro&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estilo&quot;},&quot;frame&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Responsivo&quot;,&quot;Celular&quot;],&quot;default&quot;:&quot;Responsivo&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Visualização&quot;},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Início&quot;,&quot;Lançamentos&quot;,&quot;Importar&quot;,&quot;Orçamentos&quot;,&quot;Relatórios&quot;,&quot;Contas&quot;,&quot;Compartilhadas&quot;,&quot;Configurações&quot;],&quot;default&quot;:&quot;Início&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Visualização&quot;},&quot;confStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Medidor&quot;,&quot;Porcentagem&quot;],&quot;default&quot;:&quot;Medidor&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Importação&quot;}}">
+const P={
+home:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+list:'<path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"/>',
+upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+chart:'<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+sliders:'<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+more:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+swap:'<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>',
+alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+check:'<path d="M20 6 9 17l-5-5"/>',
+arrow:'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+card:'<rect width="20" height="14" x="2" y="5"/><line x1="2" x2="22" y1="10" y2="10"/>',
+link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+trash:'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+pix:'<path d="M12 2 22 12 12 22 2 12z"/>'
+};
+const ic=(n,s=20,sw=2)=>React.createElement('svg',{width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:sw,strokeLinecap:'square',strokeLinejoin:'miter',style:{display:'block',flex:'none'},dangerouslySetInnerHTML:{__html:P[n]}});
+const I={plus:ic('plus',18),search:ic('search',18),x:ic('x',18),swap:ic('swap',16),alert:ic('alert',16),check:ic('check',16),checkLg:ic('check',30,3),arrow:ic('arrow',16),upload:ic('upload',16),uploadLg:ic('upload',32),link:ic('link',16),trash:ic('trash',16)};
+const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const brl0=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const sgn=v=>(v<0?'−\u00a0':'+\u00a0')+brl(Math.abs(v));
+const MON=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const TODAY='2026-09-23',DAYS_LEFT=8,MONTH_PCT=77;
+const CATS0=[['mercado','Mercado'],['delivery','Delivery'],['transporte','Transporte'],['moradia','Moradia'],['lazer','Lazer'],['saude','Saúde'],['assinaturas','Assinaturas'],['compras','Compras'],['casa','Casa'],['educacao','Educação'],['presentes','Presentes'],['salario','Salário'],['outros','Outros']].map(([id,name])=>({id,name}));
+const ACCS=[
+{id:'nuconta',name:'Nubank',kind:'conta',sub:'Conta corrente',bal:3420.18,last:'Último extrato: 20/09 (OFX)'},
+{id:'itau',name:'Itaú',kind:'conta',sub:'Conta corrente · ag. 0421',bal:8905.40,last:'Último extrato: 20/09 (PDF)'},
+{id:'dinheiro',name:'Dinheiro',kind:'conta',sub:'Carteira · lançado à mão',bal:180,last:'Atualizado em 15/09'},
+{id:'nucc',name:'Nubank Ultravioleta',kind:'cartao',sub:'Crédito •••• 4821',fatura:1842.37,limite:12000,fecha:'25/09',vence:'02/10',dias:9},
+{id:'itaucc',name:'Itaú Click',kind:'cartao',sub:'Crédito •••• 0913',fatura:689.90,limite:5000,fecha:'03/10',vence:'10/10',dias:17}];
+const accName=id=>(ACCS.find(a=>a.id===id)||{name:'—'}).name;
+const TX0=[
+{id:1,d:'2026-09-23',desc:'iFood · Restaurante Sabor',m:'iFood',amt:-58.9,acc:'nucc',cat:'delivery'},
+{id:2,d:'2026-09-23',desc:'Pix enviado · Mariana Souza',m:'Mariana Souza',amt:-120,acc:'nuconta',cat:'',pix:true},
+{id:3,d:'2026-09-22',desc:'Uber',m:'Uber',amt:-23.4,acc:'nucc',cat:'transporte'},
+{id:4,d:'2026-09-22',desc:'Pão de Açúcar',m:'Pão de Açúcar',amt:-312.75,acc:'itaucc',cat:'mercado',shared:true},
+{id:5,d:'2026-09-21',desc:'Magazine Luiza · Air fryer',m:'Magalu',amt:-189.9,acc:'nucc',cat:'casa',inst:[3,10]},
+{id:6,d:'2026-09-20',desc:'Transferência Nubank → Itaú',m:'',amt:-1500,acc:'nuconta',type:'transfer'},
+{id:7,d:'2026-09-20',desc:'Pagamento fatura Nubank',m:'',amt:-2340.5,acc:'itau',type:'invoice'},
+{id:8,d:'2026-09-19',desc:'Rappi',m:'Rappi',amt:-74.5,acc:'nucc',cat:'delivery'},
+{id:9,d:'2026-09-18',desc:'Pix recebido · João Lima',m:'João Lima',amt:85,acc:'nuconta',cat:'',pix:true},
+{id:10,d:'2026-09-18',desc:'Netflix',m:'Netflix',amt:-55.9,acc:'nucc',cat:'assinaturas'},
+{id:11,d:'2026-09-17',desc:'Drogasil',m:'Drogasil',amt:-67.3,acc:'nucc',cat:'saude'},
+{id:12,d:'2026-09-15',desc:'Feira de domingo',m:'Feira',amt:-42,acc:'dinheiro',cat:'mercado'},
+{id:13,d:'2026-09-15',desc:'Aluguel setembro',m:'Imobiliária Lar',amt:-2200,acc:'itau',cat:'moradia',shared:true},
+{id:14,d:'2026-09-13',desc:'iFood',m:'iFood',amt:-39.9,acc:'nucc',cat:'delivery'},
+{id:15,d:'2026-09-12',desc:'Apple · iPhone 15',m:'Apple',amt:-499.9,acc:'itaucc',cat:'compras',inst:[5,12]},
+{id:16,d:'2026-09-10',desc:'Enel · energia',m:'Enel',amt:-187.4,acc:'itau',cat:'moradia',shared:true},
+{id:17,d:'2026-09-08',desc:'iFood',m:'iFood',amt:-62.4,acc:'nucc',cat:'delivery'},
+{id:18,d:'2026-09-05',desc:'Salário · Empresa Aurora Ltda',m:'Empresa Aurora',amt:7800,acc:'itau',cat:'salario'},
+{id:19,d:'2026-09-05',desc:'Cinemark',m:'Cinemark',amt:-64,acc:'nucc',cat:'lazer'},
+{id:20,d:'2026-09-03',desc:'iFood',m:'iFood',amt:-46.8,acc:'nucc',cat:'delivery'},
+{id:21,d:'2026-09-02',desc:'Posto Shell',m:'Posto Shell',amt:-210,acc:'itaucc',cat:'transporte'},
+{id:22,d:'2026-09-01',desc:'Smart Fit',m:'Smart Fit',amt:-119.9,acc:'nucc',cat:'saude'}];
+const IMP0=[
+{k:1,d:'2026-09-21',desc:'IFOOD *IFOOD',m:'iFood',amt:-52.3,cat:'delivery',conf:.97},
+{k:2,d:'2026-09-21',desc:'UBER *TRIP HELP.UBER.COM',m:'Uber',amt:-18.9,cat:'transporte',conf:.95},
+{k:3,d:'2026-09-20',desc:'PIX ENV CARLOS A PEREIRA',m:'Carlos A. Pereira',amt:-150,cat:'',conf:0,pix:true},
+{k:4,d:'2026-09-19',desc:'MERCADOLIVRE*3PRODUTOS 02/06',m:'Mercado Livre',amt:-249,cat:'compras',conf:.72,inst:[2,6]},
+{k:5,d:'2026-09-18',desc:'NETFLIX.COM',m:'Netflix',amt:-55.9,cat:'assinaturas',conf:.99,dup:'18/09'},
+{k:6,d:'2026-09-17',desc:'PADARIA REAL LTDA',m:'Padaria Real',amt:-18.5,cat:'lazer',conf:.52},
+{k:7,d:'2026-09-16',desc:'DROGA RAIA 2231',m:'Droga Raia',amt:-43.2,cat:'saude',conf:.91},
+{k:8,d:'2026-09-16',desc:'PADARIA REAL LTDA',m:'Padaria Real',amt:-12.9,cat:'lazer',conf:.52},
+{k:9,d:'2026-09-14',desc:'SPOTIFY P1A2B3C4',m:'Spotify',amt:-21.9,cat:'assinaturas',conf:.98},
+{k:10,d:'2026-09-13',desc:'AUTO POSTO IPIRANGA',m:'Posto Ipiranga',amt:-180,cat:'transporte',conf:.93},
+{k:11,d:'2026-09-12',desc:'BAR DO ZE',m:'Bar do Zé',amt:-96,cat:'lazer',conf:.44},
+{k:12,d:'2026-09-19',desc:'RAPPI*RAPPI BRASIL',m:'Rappi',amt:-74.5,cat:'delivery',conf:.93,dup:'19/09'},
+{k:13,d:'2026-09-08',desc:'PAGAMENTO RECEBIDO',m:'Pagamento da fatura',amt:2340.5,type:'invoice',cat:'',conf:1}];
+const SAMPLES=[{name:'fatura-nubank-set.pdf',size:'184 KB',dest:'nucc',hint:'Fatura Nubank detectada'},{name:'extrato-itau-set.ofx',size:'42 KB',dest:'itau',hint:'Extrato Itaú detectado'},{name:'extrato.csv',size:'12 KB',dest:null,hint:'CSV — escolha o destino'}];
+const MONTHS=[{m:'abr',r:7800,d:6120},{m:'mai',r:7800,d:6890},{m:'jun',r:8350,d:5980},{m:'jul',r:7800,d:7420},{m:'ago',r:7800,d:6710}];
+const CATHIST={delivery:[240,265,198,310,210],mercado:[980,1105,870,1240,1010],transporte:[420,380,455,510,390],lazer:[260,340,180,420,290],moradia:[2380,2390,2375,2402,2388]};
+const ANA_TX=[{d:'2026-09-19',desc:'Sacolão São Jorge',amt:88},{d:'2026-09-14',desc:'Vivo Fibra',amt:119.9}];
+const START={'Início':'dashboard','Lançamentos':'lanc','Importar':'importar','Orçamentos':'orc','Relatórios':'rel','Contas':'contas','Compartilhadas':'comp','Configurações':'config'};
+const fmtD=d=>{const [y,m,dd]=d.split('-');return `${dd}/${m}`};
+const kindOf=t=>t.type?'neutral':t.amt>0?'income':'expense';
+
+const NL={100:'#F1F3F8',200:'#E6E9F1',300:'#D3D8E4',400:'#B3BACB',500:'#8F97AB',600:'#6D758A',700:'#535B6F',800:'#3A4154',900:'#232838'};
+const ND={100:'#1D2029',200:'#272B36',300:'#343946',400:'#4A5061',500:'#646B7E',600:'#8990A4',700:'#A6ACBE',800:'#C5CAD8',900:'#E4E7EF'};
+const AL={b:'#3B5BDB',100:'#EBEFFD',200:'#D7DFFB',300:'#B6C4F7',400:'#8EA3F1',500:'#5C78E4',600:'#3450C7',700:'#2A43A8',800:'#213585',900:'#172660'};
+const AD={b:'#7890FA',100:'#1C2446',200:'#263262',300:'#34458A',400:'#5670E8',500:'#7890FA',600:'#90A5FF',700:'#AEBFFF',800:'#CBD6FF',900:'#E4EAFF'};
+const PAL={'Acolhedor|Claro':{bg:'#F4F5FA',card:'#FFFFFF',surface:'#EEF1F8',text:'#1A1F36',div:'#E2E6F0',N:NL,A:AL,sh:'26,31,54',a:.10},
+'Acolhedor|Escuro':{bg:'#15171F',card:'#1D2029',surface:'#262A36',text:'#EEF0F7',div:'#2C303D',N:ND,A:AD,sh:'0,0,0',a:.45},
+'Fintech|Escuro':{bg:'#08090D',card:'#12141B',surface:'#1B1E27',text:'#F5F6FA',div:'#23262F',N:ND,A:AD,sh:'0,0,0',a:.6},
+'Fintech|Claro':{bg:'#FFFFFF',card:'#F3F5F9',surface:'#EBEEF4',text:'#0B0D14',div:'#E5E8EE',N:NL,A:AL,sh:'11,13,20',a:.10}};
+const theme=(e,m)=>{const p=PAL[e+'|'+m]||PAL['Acolhedor|Claro'];const fin=e==='Fintech';const o={'--color-bg':p.bg,'--color-card':p.card,'--color-surface':p.surface,'--color-text':p.text,'--color-divider':p.div,'--color-accent':p.A.b,
+'--font-heading':fin?'"Manrope", system-ui, sans-serif':'"Plus Jakarta Sans", system-ui, sans-serif','--font-body':fin?'"Manrope", system-ui, sans-serif':'"Plus Jakarta Sans", system-ui, sans-serif','--font-heading-weight':'800',
+'--radius-sm':fin?'8px':'10px','--radius-md':fin?'12px':'16px','--radius-lg':fin?'20px':'26px','--r-icon':fin?'12px':'14px','--num-lg':fin?'48px':'38px',
+'--shadow-sm':'0 1px 3px rgba('+p.sh+','+p.a+')','--shadow-md':'0 6px 18px rgba('+p.sh+','+p.a+')','--shadow-lg':'0 18px 48px rgba('+p.sh+','+(p.a*1.6)+')'};
+[100,200,300,400,500,600,700,800,900].forEach(k=>{o['--color-neutral-'+k]=p.N[k];o['--color-accent-'+k]=p.A[k];});return o;};
+class Component extends DCLogic {
+  state={w:typeof window!=='undefined'?window.innerWidth:1200,screen:null,txs:TX0,cats:CATS0,
+    budgets:{mercado:1200,delivery:350,transporte:500,moradia:2600,lazer:300,saude:250,assinaturas:120,compras:600,casa:300},
+    rules:[{id:1,m:'iFood',cat:'delivery',origem:'Criada em 02/07 ao revisar importação'},{id:2,m:'Uber',cat:'transporte',origem:'Criada em 02/07 ao revisar importação'},{id:3,m:'Netflix',cat:'assinaturas',origem:'Criada em 14/07'},{id:4,m:'Spotify',cat:'assinaturas',origem:'Criada em 14/07'}],
+    q:'',fAcc:'all',fCat:'all',fPer:'mes',detail:null,qa:null,more:false,ruleAsk:null,toast:null,
+    imp:{step:'upload',file:null,dest:null,progress:0,rows:[],filter:'todos',sel:[],drag:false,result:null,newRules:0},
+    history:[{file:'fatura-nubank-ago-2026.pdf',dest:'Nubank Ultravioleta',date:'20/09',n:47},{file:'extrato-itau-ago.ofx',dest:'Itaú · conta corrente',date:'20/09',n:18},{file:'fatura-itau-click-ago.csv',dest:'Itaú Click',date:'12/09',n:9}],
+    editB:false,split:50,settled:false,invites:[],inviteEmail:'',cfgTab:'cat',newCat:'',
+    prefs:{budget:true,thr:80,fatura:true,pix:true,dup:true,weekly:false},summary:null,summaryLoading:false,repCat:'delivery'};
+  scrollRef=React.createRef(); rootRef=React.createRef(); fileRef=React.createRef();
+  componentDidUpdate(){this.applyTheme();}
+  applyTheme(){const el=this.rootRef.current;if(!el)return;const t=theme(this.props.estilo??'Acolhedor',this.props.modo??'Claro');Object.entries(t).forEach(([k,v])=>el.style.setProperty(k,v));}
+  componentDidMount(){this.applyTheme();this.onR=()=>this.setState({w:window.innerWidth});window.addEventListener('resize',this.onR);}
+  componentWillUnmount(){window.removeEventListener('resize',this.onR);clearInterval(this.timer);clearTimeout(this.tt);}
+  go=s=>{this.setState({screen:s,more:false});if(this.scrollRef.current)this.scrollRef.current.scrollTop=0;};
+  flash=msg=>{clearTimeout(this.tt);this.setState({toast:msg});this.tt=setTimeout(()=>this.setState({toast:null}),2600);};
+  setImp=patch=>this.setState(s=>({imp:{...s.imp,...(typeof patch==='function'?patch(s.imp):patch)}}));
+  updTx=(id,patch)=>this.setState(s=>({txs:s.txs.map(t=>t.id===id?{...t,...patch}:t)}));
+  catName=id=>(this.state.cats.find(c=>c.id===id)||{name:'Sem categoria'}).name;
+  askRule(m,cat,from){
+    if(!m||!cat||this.state.rules.some(r=>r.m===m&&r.cat===cat))return;
+    let others=0;
+    if(from==='import')others=this.state.imp.rows.filter(r=>r.m===m&&!r.edited).length;
+    else others=this.state.txs.filter(t=>t.m===m&&t.cat!==cat).length;
+    this.setState({ruleAsk:{m,cat,from,others}});
+  }
+  ruleYes=()=>{const {m,cat,from}=this.state.ruleAsk;
+    this.setState(s=>({rules:[...s.rules,{id:Date.now(),m,cat,origem:from==='import'?'Criada agora ao revisar importação':'Criada agora ao editar lançamento'}],ruleAsk:null,
+      imp:from==='import'?{...s.imp,newRules:s.imp.newRules+1,rows:s.imp.rows.map(r=>r.m===m?{...r,cat,edited:true}:r)}:s.imp,
+      txs:from!=='import'?s.txs.map(t=>t.m===m&&!t.type?{...t,cat}:t):s.txs}));
+    this.flash(`Regra criada: ${m} → ${this.catName(cat)}`);};
+  startProcessing=()=>{
+    const rules=this.state.rules;
+    this.setImp({step:'processing',progress:0});
+    clearInterval(this.timer);
+    this.timer=setInterval(()=>{
+      const p=this.state.imp.progress+3;
+      if(p>=100){clearInterval(this.timer);
+        const rows=IMP0.map(r=>{const rule=!r.type&&rules.find(x=>x.m===r.m);return {...r,cat:rule?rule.cat:r.cat,byRule:!!rule,ignored:!!r.dup,edited:false};});
+        this.setImp({step:'review',progress:100,rows,sel:[],filter:'todos',newRules:0});}
+      else this.setImp({progress:p});
+    },90);};
+  cancelImport=()=>{clearInterval(this.timer);this.setImp({step:'upload',file:null,dest:null,progress:0,rows:[],sel:[]});};
+  confirmImport=()=>{const {rows,dest,file,newRules}=this.state.imp;const inc=rows.filter(r=>!r.ignored);
+    const newTx=inc.map(r=>({id:'i'+r.k+Date.now(),d:r.d,desc:r.m,m:r.m,amt:r.amt,acc:dest,cat:r.cat,pix:r.pix,inst:r.inst,type:r.type}));
+    this.setState(s=>({txs:[...newTx,...s.txs].sort((a,b)=>b.d.localeCompare(a.d)),history:[{file:file.name,dest:accName(dest),date:'23/09',n:inc.length},...s.history]}));
+    this.setImp({step:'done',result:{n:inc.length,ign:rows.length-inc.length,inst:inc.filter(r=>r.inst).length,rules:newRules,pend:inc.filter(r=>!r.type&&!r.cat).length,dest:accName(dest)}});};
+  pickSample=s=>this.setImp({file:{name:s.name,size:s.size,hint:s.hint},dest:s.dest||this.state.imp.dest});
+  onFileObj=f=>{if(!f)return;const ext=f.name.split('.').pop().toLowerCase();
+    if(!['pdf','ofx','csv'].includes(ext)){this.flash('Formato não suportado — use PDF, OFX ou CSV');return;}
+    this.setImp({file:{name:f.name,size:Math.max(1,Math.round(f.size/1024))+' KB',hint:'Pronto para leitura'},drag:false});};
+  regenSummary=async()=>{
+    if(!window.claude||!window.claude.complete){this.flash('Resumo atualizado');return;}
+    this.setState({summaryLoading:true});
+    try{const txt=await window.claude.complete(`Escreva em pt-BR, linguagem simples e direta, em até 70 palavras, um resumo financeiro do mês para o usuário (trate por "você"). Dados: ${this.summaryFacts}. Sem listas, um parágrafo só.`);this.setState({summary:txt.trim(),summaryLoading:false});}
+    catch(e){this.setState({summaryLoading:false});this.flash('Não foi possível gerar agora');}};
+
+  renderVals(){
+    const s=this.state,p=this.props;
+    const frame=(p.frame??'Responsivo')==='Celular';
+    const isWide=!frame&&s.w>=960, isNarrow=!isWide;
+    const screen=s.screen||START[p.startScreen]||'dashboard';
+    const catName=this.catName, cats=s.cats;
+    const txs=s.txs;
+    const exp=txs.filter(t=>kindOf(t)==='expense'), inc=txs.filter(t=>kindOf(t)==='income');
+    const despT=exp.reduce((a,t)=>a-t.amt,0), recT=inc.reduce((a,t)=>a+t.amt,0);
+    const spent={};exp.forEach(t=>{if(t.cat)spent[t.cat]=(spent[t.cat]||0)-t.amt;});
+    const bEntries=Object.entries(s.budgets);
+    const bLim=bEntries.reduce((a,[,v])=>a+v,0), bSp=bEntries.reduce((a,[k])=>a+(spent[k]||0),0);
+    const livre=Math.max(0,bLim-bSp);
+    const thr=s.prefs.thr;
+    const open=t=>()=>this.setState({detail:t.id});
+    const tv=t=>{const k=kindOf(t),pixPending=!!t.pix&&!t.cat&&k!=='neutral';
+      const tags=[];
+      if(t.inst)tags.push({cls:'tag tag-outline',label:`Parcela ${t.inst[0]}/${t.inst[1]}`});
+      if(pixPending)tags.push({cls:'tag tag-accent',label:'Pix PF · sem categoria'});
+      else if(t.pix)tags.push({cls:'tag tag-neutral',label:'Pix'});
+      if(t.shared)tags.push({cls:'tag tag-neutral',label:'Compartilhado'});
+      if(k==='neutral')tags.push({cls:'tag tag-neutral',label:'Fora das despesas'});
+      const typeLabel=t.type==='invoice'?'Pagamento de fatura':'Transferência própria';
+      return {...t,open:open(t),tags,pixPending,
+        meta:k==='neutral'?`${typeLabel} · ${accName(t.acc)}`:`${t.cat?catName(t.cat):'Sem categoria'} · ${accName(t.acc)}`,
+        badge:k==='neutral'?ic('swap',16):pixPending||t.pix?'PIX':k==='income'?'+':(t.cat?catName(t.cat).slice(0,2).toUpperCase():'?'),
+        iconBg:k==='neutral'?'var(--color-neutral-200)':pixPending?'var(--color-accent)':k==='income'?'var(--color-text)':'var(--color-surface)',
+        iconFg:k==='neutral'?'var(--color-neutral-600)':pixPending||k==='income'?'var(--color-bg)':'var(--color-text)',
+        titleFg:k==='neutral'?'var(--color-neutral-600)':'var(--color-text)',
+        amtFg:k==='neutral'?'var(--color-neutral-600)':'var(--color-text)',amtW:k==='income'?800:600,
+        amtStr:k==='neutral'?brl(Math.abs(t.amt)):sgn(t.amt),
+        rowBg:pixPending?'var(--color-accent-100)':'transparent',
+        quick:['mercado','lazer','presentes','moradia','outros'].map(c=>({name:catName(c),pick:e=>{e.stopPropagation();this.updTx(t.id,{cat:c});this.flash(`${t.m} → ${catName(c)}`);this.askRule(t.m,c,'tx');}}))};};
+    // alerts
+    const alerts=[];
+    if(s.prefs.budget)bEntries.map(([k,l])=>[k,(spent[k]||0)/l]).filter(([,r])=>r*100>=thr).sort((a,b)=>b[1]-a[1]).forEach(([k,r])=>alerts.push({title:r>=1?`Orçamento de ${catName(k)} estourado`:`Você já usou ${Math.round(r*100)}% do orçamento de ${catName(k)}`,sub:`${brl(spent[k])} de ${brl(s.budgets[k])} · faltam ${DAYS_LEFT} dias`,icon:ic('target',16),bg:'var(--color-accent-100)',fg:'var(--color-accent-700)',cta:'Ver',go:()=>this.go('orc')}));
+    const pixPend=txs.filter(t=>t.pix&&!t.cat&&!t.type);
+    if(s.prefs.pix&&pixPend.length)alerts.push({title:`${pixPend.length} Pix para pessoa física sem categoria`,sub:'Categorize com um toque na lista',icon:ic('pix',14),bg:'var(--color-accent)',fg:'var(--color-bg)',cta:'Resolver',go:()=>{this.setState({fCat:'none',fPer:'mes',fAcc:'all',q:''});this.go('lanc');}});
+    if(s.prefs.fatura)alerts.push({title:'Fatura Nubank vence em 9 dias',sub:`${brl(ACCS[3].fatura)} · vencimento 02/10`,icon:ic('card',16),bg:'var(--color-surface)',fg:'var(--color-text)',cta:'Ver',go:()=>this.go('contas')});
+    // lanc
+    let list=txs.slice();
+    if(s.fAcc!=='all')list=list.filter(t=>t.acc===s.fAcc);
+    if(s.fCat==='none')list=list.filter(t=>!t.cat&&!t.type);else if(s.fCat!=='all')list=list.filter(t=>t.cat===s.fCat);
+    if(s.fPer==='7d')list=list.filter(t=>t.d>='2026-09-17');if(s.fPer==='ago')list=[];
+    if(s.q.trim()){const q=s.q.trim().toLowerCase();list=list.filter(t=>(t.desc+' '+t.m+' '+Math.abs(t.amt).toFixed(2).replace('.',',')).toLowerCase().includes(q));}
+    list.sort((a,b)=>b.d.localeCompare(a.d));
+    const groups=[];list.forEach(t=>{let g=groups[groups.length-1];if(!g||g.d!==t.d){g={d:t.d,items:[],sum:0};groups.push(g);}g.items.push(tv(t));if(kindOf(t)==='expense')g.sum-=t.amt;});
+    const dayLbl=d=>{const dt=new Date(d+'T12:00');const n=`${dt.getDate()} ${MON[dt.getMonth()]}`;return d===TODAY?`Hoje · ${n}`:d==='2026-09-22'?`Ontem · ${n}`:`${DOW[dt.getDay()]} · ${n}`;};
+    // import
+    const im=s.imp;const destAcc=ACCS.find(a=>a.id===im.dest);
+    const stepIdx={upload:0,processing:1,review:2,done:3}[im.step];
+    const stages=[['Lendo o arquivo','PDF, OFX ou CSV → texto estruturado'],['Encontrando lançamentos','Datas, valores, parcelas e Pix'],['Sugerindo categorias','Regras suas primeiro, depois a sugestão automática'],['Checando duplicatas','Comparando com importações anteriores']];
+    const stNow=Math.min(3,Math.floor(im.progress/25));
+    const rowsAll=im.rows.map(r=>{const neutral=!!r.type;
+      const level=neutral?'n':r.edited?'voce':r.byRule?'regra':r.conf>=.85?'alta':r.conf>=.6?'media':r.conf>0?'baixa':'nenhuma';
+      const filled={voce:3,regra:3,alta:3,media:2,baixa:1,nenhuma:0}[level]||0;const weak=level==='baixa'||level==='nenhuma';
+      const barC=i=>i<=filled?(weak?'var(--color-accent)':'var(--color-text)'):'var(--color-neutral-300)';
+      const needs=!neutral&&(weak||!r.cat||(r.pix&&!r.edited));
+      const tags=[];if(r.pix)tags.push({cls:'tag tag-accent',label:'Pix para pessoa física'});
+      if(r.inst){const fut=r.inst[1]-r.inst[0];tags.push({cls:'tag tag-outline',label:`Parcela ${r.inst[0]}/${r.inst[1]}`});tags.push({cls:'tag tag-neutral',label:`+${fut} parcelas projetadas até ${MON[(8+fut)%12]}`});}
+      return {...r,needs,neutral,categorizable:!neutral,selected:im.sel.includes(r.k),date:fmtD(r.d),amtStr:neutral?brl(Math.abs(r.amt)):sgn(r.amt),
+        amtFg:neutral?'var(--color-neutral-600)':'var(--color-text)',titleFg:neutral?'var(--color-neutral-600)':'var(--color-text)',
+        bg:r.pix&&!r.edited?'var(--color-accent-100)':r.dup?'var(--color-neutral-100)':'transparent',op:r.ignored?.55:1,
+        dupNote:`Possível duplicata — já lançado em ${r.dup} por uma importação anterior`,ignoreCta:r.ignored?'Importar mesmo assim':'Não importar',
+        b1:barC(1),b2:barC(2),b3:barC(3),confFg:weak?'var(--color-accent-700)':'var(--color-text)',
+        confLabel:p.confStyle==='Porcentagem'&&!['voce','regra'].includes(level)?`${Math.round(r.conf*100)}% de confiança`:{voce:'Você definiu',regra:'Regra automática',alta:'Confiança alta',media:'Confiança média',baixa:'Confiança baixa',nenhuma:'Sem sugestão'}[level],
+        confSub:['alta','media','baixa'].includes(level)&&p.confStyle!=='Porcentagem'?`${Math.round(r.conf*100)}%`:'',
+        selBorder:needs?'var(--color-accent)':'var(--color-divider)',tags,hasTags:tags.length>0,
+        onSel:()=>this.setImp(i=>({sel:i.sel.includes(r.k)?i.sel.filter(x=>x!==r.k):[...i.sel,r.k]})),
+        toggleIgnore:()=>this.setImp(i=>({rows:i.rows.map(x=>x.k===r.k?{...x,ignored:!x.ignored}:x)})),
+        onCat:e=>{const c=e.target.value;this.setImp(i=>({rows:i.rows.map(x=>x.k===r.k?{...x,cat:c,edited:true}:x)}));this.askRule(r.m,c,'import');}};});
+    const vis=rowsAll.filter(r=>im.filter==='revisar'?r.needs:im.filter==='dup'?!!r.dup:true);
+    const incl=rowsAll.filter(r=>!r.ignored);
+    const rev={rows:vis,hasSel:im.sel.length>0,selCount:im.sel.length,allSel:vis.length>0&&vis.every(r=>im.sel.includes(r.k)),
+      toggleAll:()=>this.setImp(i=>({sel:vis.every(r=>i.sel.includes(r.k))?[]:vis.map(r=>r.k)})),clearSel:()=>this.setImp({sel:[]}),
+      bulkCat:e=>{const c=e.target.value;if(!c)return;const n=im.sel.length;this.setImp(i=>({rows:i.rows.map(x=>i.sel.includes(x.k)&&!x.type?{...x,cat:c,edited:true}:x),sel:[]}));this.flash(`${catName(c)} aplicada a ${n} lançamentos`);},
+      bulkIgnore:()=>this.setImp(i=>({rows:i.rows.map(x=>i.sel.includes(x.k)?{...x,ignored:true}:x),sel:[]})),
+      filters:[['todos',`Todos ${rowsAll.length}`],['revisar',`Revisar ${rowsAll.filter(r=>r.needs).length}`],['dup',`Duplicatas ${rowsAll.filter(r=>r.dup).length}`]].map(([id,label])=>({label,on:im.filter===id,pick:()=>this.setImp({filter:id,sel:[]})})),
+      stats:[{v:rowsAll.length,label:'lançamentos encontrados'},{v:rowsAll.filter(r=>r.needs).length,label:'pedem sua revisão',fg:'var(--color-accent-700)'},{v:rowsAll.filter(r=>r.dup).length,label:'possíveis duplicatas'},{v:rowsAll.filter(r=>r.inst).length,label:'compra parcelada'}],
+      incCount:incl.length,ignCount:rowsAll.length-incl.length,pendCount:incl.filter(r=>!r.type&&!r.cat).length,incTotal:brl(incl.filter(r=>!r.type&&r.amt<0).reduce((a,r)=>a-r.amt,0))};
+    const res=im.result||{};
+    // orc
+    const orcRows=bEntries.map(([k,l])=>{const sp=spent[k]||0,r=sp/l,pct=Math.round(r*100);
+      return {name:catName(k),spent:brl(sp),limit:brl0(l),limitRaw:String(l),w:Math.min(100,r*100),fill:r>=1?'var(--color-accent-700)':pct>=thr?'var(--color-accent)':'var(--color-text)',
+        pctLabel:`${pct}%`,left:r>=1?`Estourou ${brl(sp-l)}`:`Restam ${brl(l-sp)}`,leftFg:r>=1?'var(--color-accent-700)':'inherit',
+        hasTag:pct>=thr,tag:r>=1?'Estourado':`${pct}% usado`,tagCls:r>=1?'tag tag-outline':'tag tag-accent',editing:s.editB,notEditing:!s.editB,
+        setLimit:e=>{const v=parseFloat(e.target.value.replace(',','.'))||0;this.setState(st=>({budgets:{...st.budgets,[k]:v}}));},r};}).sort((a,b)=>b.r-a.r);
+    // relatorios
+    const setD=despT, months=[...MONTHS,{m:'set',r:recT,d:setD}];const mx=Math.max(...months.map(m=>Math.max(m.r,m.d)));
+    const catKeys=Object.keys(CATHIST);const rc=s.repCat;const hist=[...CATHIST[rc],spent[rc]||0];const hmx=Math.max(...hist);
+    const avg=CATHIST[rc].reduce((a,b)=>a+b,0)/5;const dPct=Math.round(((spent[rc]||0)/CATHIST[rc][4]-1)*100);
+    const byM={};exp.forEach(t=>{const k=t.m||t.desc;byM[k]=byM[k]||{name:k,n:0,total:0,cat:t.cat};byM[k].n++;byM[k].total-=t.amt;});
+    const top=Object.values(byM).sort((a,b)=>b.total-a.total).slice(0,6).map((x,i)=>({rank:i+1,name:x.name,n:x.n,total:brl(x.total),cat:catName(x.cat)}));
+    const del=spent.delivery||0,delN=exp.filter(t=>t.cat==='delivery').length,delVs=Math.round((del/210-1)*100);
+    // installments projection
+    const instTx=txs.filter(t=>t.inst);const proj=[];for(let k=1;k<=6;k++){const v=instTx.reduce((a,t)=>a+(t.inst[0]+k<=t.inst[1]?-t.amt:0),0);proj.push({m:MON[(8+k)%12],v:brl0(v),val:v});}
+    const pmx=Math.max(1,...proj.map(x=>x.val));const projTotal=instTx.reduce((a,t)=>a+(t.inst[1]-t.inst[0])*-t.amt,0);
+    const facts=`até 23/09: receitas ${brl(recT)}, despesas ${brl(despT)}, sobra ${brl(recT-despT)}; maior categoria Moradia ${brl(spent.moradia||0)}; Delivery ${brl(del)} em ${delN} pedidos, ${delVs}% acima de agosto, limite ${brl(s.budgets.delivery)}; parcelas comprometem ${brl(proj[0].val)} por mês nas próximas faturas; faltam ${DAYS_LEFT} dias`;
+    this.summaryFacts=facts;
+    const summary=s.summary||`Até o dia 23, entraram ${brl0(recT)} e saíram ${brl0(despT)} — sobraram ${brl0(recT-despT)}, um mês melhor que agosto. Moradia segue sendo o maior gasto (${brl0(spent.moradia||0)}, aluguel e energia). O ponto de atenção é Delivery: ${brl0(del)} em ${delN} pedidos, ${delVs}% a mais que em agosto, e ainda faltam ${DAYS_LEFT} dias. As compras parceladas já reservam ${brl0(proj[0].val)} da fatura de outubro.`;
+    // compartilhadas
+    const mine=txs.filter(t=>t.shared&&kindOf(t)==='expense');const mePaid=mine.reduce((a,t)=>a-t.amt,0),anaPaid=ANA_TX.reduce((a,t)=>a+t.amt,0),tot=mePaid+anaPaid;
+    const my=s.split/100;const owe=mePaid-tot*my;
+    const compItems=[...mine.map(t=>({d:t.d,desc:t.desc,who:'VC',bg:'var(--color-text)',fg:'var(--color-bg)',meta:`${fmtD(t.d)} · você pagou`,amt:brl(-t.amt),split:`Ana: ${brl(-t.amt*(1-my))}`})),...ANA_TX.map(t=>({d:t.d,desc:t.desc,who:'AR',bg:'var(--color-surface)',fg:'var(--color-text)',meta:`${fmtD(t.d)} · Ana pagou`,amt:brl(t.amt),split:`Você: ${brl(t.amt*my)}`}))].sort((a,b)=>b.d.localeCompare(a.d));
+    // detail
+    const dt=s.detail!=null&&txs.find(t=>t.id===s.detail);let det={};
+    if(dt){const k=kindOf(dt);const r=[['Data',fmtD(dt.d)+'/2026'],['Conta',accName(dt.acc)]];if(dt.m&&k!=='neutral')r.push(['Estabelecimento',dt.m]);if(dt.inst)r.push(['Parcela',`${dt.inst[0]} de ${dt.inst[1]} · total ${brl(-dt.amt*dt.inst[1])}`]);
+      det={desc:dt.desc,kicker:k==='neutral'?'Movimentação neutra':dt.pix?'Pix':k==='income'?'Receita':'Despesa',amtStr:k==='neutral'?brl(Math.abs(dt.amt)):sgn(dt.amt),amtFg:k==='neutral'?'var(--color-neutral-600)':'var(--color-text)',
+        rows:r.map(([k2,v])=>({k:k2,v})),neutral:k==='neutral',categorizable:k!=='neutral',cat:dt.cat||'',shared:!!dt.shared,
+        neutralNote:dt.type==='invoice'?'Pagar a fatura não é um gasto novo: as compras já foram contadas quando você usou o cartão.':'Transferência entre contas suas — o dinheiro não saiu do seu bolso.',
+        onCat:e=>{const c=e.target.value;this.updTx(dt.id,{cat:c});this.setState({detail:null});this.askRule(dt.m,c,'tx');},
+        togShared:()=>{this.updTx(dt.id,{shared:!dt.shared});this.flash(dt.shared?'Removido das compartilhadas':'Marcado como compartilhado com Ana');},
+        hasInst:!!dt.inst,inst:dt.inst?Array.from({length:dt.inst[1]},(_,i)=>{const n=i+1,cur=n===dt.inst[0],past=n<dt.inst[0];return {n:`${n}/${dt.inst[1]}`,m:cur?'set · atual':`${MON[(8+n-dt.inst[0]+12)%12]}`,bg:cur?'var(--color-accent)':past?'var(--color-neutral-200)':'var(--color-bg)',fg:cur?'var(--color-bg)':past?'var(--color-neutral-600)':'var(--color-text)'};}):[]};}
+    const qa=s.qa;const qaAmt=qa?parseFloat(String(qa.amt).replace(/\./g,'').replace(',','.')):0;
+    const setQA=patch=>this.setState(st=>({qa:{...st.qa,...patch}}));
+    const navDef=[['dashboard','Início','home'],['lanc','Lançamentos','list'],['importar','Importar extrato','upload'],['orc','Orçamentos','target'],['rel','Relatórios','chart'],['contas','Contas e cartões','wallet'],['comp','Compartilhadas','users'],['config','Configurações','sliders']];
+    const moreIds=['rel','contas','comp','config'];
+    const ruleA=s.ruleAsk;
+    return {
+      I,isWide,isNarrow,screen,pad:isWide?'32px 40px':'16px',
+      appW:frame?'390px':'100%',appH:frame?'844px':'100vh',rootBg:frame?'transparent':'var(--color-bg)',rootMinH:frame?'auto':'100vh',appRadius:frame?'36px':'0',rootRef:this.rootRef,appShadow:frame?'var(--shadow-lg)':'none',
+      is:{dashboard:screen==='dashboard',lanc:screen==='lanc',importar:screen==='importar',orc:screen==='orc',rel:screen==='rel',contas:screen==='contas',comp:screen==='comp',config:screen==='config'},
+      nav:navDef.map(([id,label,icon])=>({label,icon:ic(icon,18),go:()=>this.go(id),bg:screen===id?'var(--color-surface)':'transparent',color:screen===id?'var(--color-accent-700)':'var(--color-text)',weight:screen===id?800:400})),
+      tabs:[['dashboard','Início','home'],['lanc','Lançamentos','list'],['importar','Importar','upload'],['orc','Orçamentos','target'],['mais','Mais','more']].map(([id,label,icon])=>{const on=id==='mais'?moreIds.includes(screen):screen===id;return {label,icon:ic(icon,20),go:()=>id==='mais'?this.setState({more:true}):this.go(id),bar:on?'var(--color-accent)':'transparent',bg:'transparent',color:on?'var(--color-accent-700)':'var(--color-text)',weight:on?800:400};}),
+      moreItems:navDef.filter(n=>moreIds.includes(n[0])).map(([id,label,icon])=>({label,icon:ic(icon,20),go:()=>this.go(id)})),
+      more:s.more,stop:e=>e.stopPropagation(),closeAll:()=>this.setState({more:false,detail:null,qa:null}),
+      goImport:()=>this.go('importar'),goLanc:()=>this.go('lanc'),goOrc:()=>this.go('orc'),
+      dash:{saldo:sgn(recT-despT),rec:brl(recT),desp:brl(despT),despPct:Math.min(100,despT/recT*100),despPctLabel:`${Math.round(despT/recT*100)}%`,livre:brl(livre),porDia:brl(livre/DAYS_LEFT),dias:DAYS_LEFT,alertCount:alerts.length,
+        cats:Object.entries(spent).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([k,v],i,arr)=>{const l=s.budgets[k],hot=l&&v/l*100>=thr;return {name:catName(k),val:brl(v),w:v/arr[0][1]*100,fill:hot?'var(--color-accent)':'var(--color-text)'};}),
+        recent:txs.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,5).map(tv)},
+      alerts,
+      lanc:{count:list.length,groups:groups.map(g=>({label:dayLbl(g.d),total:g.sum?'− '+brl(g.sum):'',items:g.items})),empty:list.length===0,
+        desp:brl(list.filter(t=>kindOf(t)==='expense').reduce((a,t)=>a-t.amt,0)),rec:brl(list.filter(t=>kindOf(t)==='income').reduce((a,t)=>a+t.amt,0))},
+      q:s.q,setQ:e=>this.setState({q:e.target.value}),fAcc:s.fAcc,setFAcc:e=>this.setState({fAcc:e.target.value}),fCat:s.fCat,setFCat:e=>this.setState({fCat:e.target.value}),
+      perOpts:[['mes','Setembro'],['7d','7 dias'],['ago','Agosto']].map(([id,label])=>({label,on:s.fPer===id,pick:()=>this.setState({fPer:id})})),
+      accOpts:ACCS.map(a=>({id:a.id,name:a.kind==='cartao'?`${a.name} (cartão)`:a.name})),catOpts:cats.map(c=>({id:c.id,name:c.name})),
+      openQA:()=>this.setState({qa:{amt:'',desc:'',cat:'',acc:'dinheiro'}}),hasQA:!!qa,
+      qa:qa?{amt:qa.amt,desc:qa.desc,acc:qa.acc,setAmt:e=>setQA({amt:e.target.value.replace(/[^\d,.]/g,'')}),setDesc:e=>setQA({desc:e.target.value}),setAcc:e=>setQA({acc:e.target.value}),
+        cats:cats.filter(c=>c.id!=='salario').map(c=>({name:c.name,cls:qa.cat===c.id?'btn btn-primary':'btn btn-secondary',pick:()=>setQA({cat:c.id})})),invalid:!(qaAmt>0&&qa.cat),
+        save:()=>{const t={id:Date.now(),d:TODAY,desc:qa.desc.trim()||catName(qa.cat),m:qa.desc.trim(),amt:-qaAmt,acc:qa.acc,cat:qa.cat};this.setState(st=>({txs:[t,...st.txs],qa:null}));this.flash(`${brl(qaAmt)} em ${catName(qa.cat)} adicionado`);}}:{},
+      imp:{isUpload:im.step==='upload',isProcessing:im.step==='processing',isReview:im.step==='review',isDone:im.step==='done',
+        steps:['Enviar','Processar','Revisar','Pronto'].map((l,i)=>({n:`0${i+1}`,label:l,bar:i<=stepIdx?'var(--color-accent)':'transparent',w:i===stepIdx?800:400})),
+        hasFile:!!im.file,fileName:im.file?im.file.name:'',fileSize:im.file?im.file.size:'',fileHint:im.file?im.file.hint:'',fileExt:im.file?im.file.name.split('.').pop().toUpperCase():'',
+        dropBg:im.drag?'var(--color-accent-100)':'var(--color-bg)',destName:destAcc?destAcc.name:'',
+        dests:ACCS.map(a=>({name:a.name,sub:a.sub,kindLabel:a.kind==='cartao'?'Cartão':'Conta',on:im.dest===a.id,pick:()=>this.setImp({dest:a.id})})),
+        cantProcess:!(im.file&&im.dest),progress:im.progress,
+        stages:stages.map(([l,sub],i)=>{const done=i<stNow||im.progress>=100,act=i===stNow&&!done;return {label:l,sub,icon:done?ic('check',14,3):'',bg:done?'var(--color-text)':act?'var(--color-accent)':'var(--color-neutral-300)',fg:done||act?'var(--color-text)':'var(--color-neutral-600)',anim:act?'cd-blink 1s infinite':'none'};}),
+        doneTitle:`${res.n} lançamentos importados em ${res.dest}`,
+        doneStats:[{label:'Duplicatas e itens ignorados',v:res.ign},{label:'Compras parceladas projetadas nas próximas faturas',v:res.inst},{label:'Regras novas criadas',v:res.rules},{label:'Ficaram sem categoria',v:res.pend}]},
+      samples:SAMPLES.map(x=>({name:x.name,pick:()=>this.pickSample(x)})),history:s.history,
+      fileRef:this.fileRef,pickFile:()=>this.fileRef.current&&this.fileRef.current.click(),onFile:e=>this.onFileObj(e.target.files[0]),clearFile:e=>{e.stopPropagation();this.setImp({file:null});},
+      onDragOver:e=>{e.preventDefault();if(!im.drag)this.setImp({drag:true});},onDrop:e=>{e.preventDefault();this.onFileObj(e.dataTransfer.files[0]);},
+      startProcessing:this.startProcessing,cancelImport:this.cancelImport,confirmImport:this.confirmImport,
+      rev,showMeter:p.confStyle!=='Porcentagem',
+      hasRule:!!ruleA,rule:ruleA?{m:ruleA.m,cat:catName(ruleA.cat),others:ruleA.others>0?(ruleA.from==='import'?`Também vamos ajustar ${ruleA.others===1?'o outro lançamento':`os outros ${ruleA.others}`} desta importação.`:`Também vamos ajustar ${ruleA.others} lançamento${ruleA.others>1?'s':''} anterior${ruleA.others>1?'es':''}.`):''}:{},
+      ruleYes:this.ruleYes,ruleNo:()=>this.setState({ruleAsk:null}),
+      alertPct:thr,toggleEditB:()=>this.setState({editB:!s.editB}),
+      orc:{rows:orcRows,spent:brl(bSp),limit:brl0(bLim),pct:Math.min(100,bSp/bLim*100),pctLabel:`${Math.round(bSp/bLim*100)}%`,timePct:MONTH_PCT,editLabel:s.editB?'Concluir':'Editar limites'},
+      summary,summaryLoading:s.summaryLoading,summaryCta:s.summaryLoading?'Escrevendo…':'Gerar de novo',regenSummary:this.regenSummary,
+      rel:{months:months.map(m=>({m:m.m,rH:m.r/mx*100,dH:m.d/mx*100,saldo:(m.r-m.d>=0?'+':'−')+brl0(Math.abs(m.r-m.d)).replace('R$','R$')})),
+        catTabs:catKeys.map(k=>({name:catName(k),cls:rc===k?'btn btn-primary':'btn btn-secondary',pick:()=>this.setState({repCat:k})})),
+        catBars:hist.map((v,i)=>({m:i<5?MONTHS[i].m:'set',v:brl0(v),h:v/hmx*100,fill:i===5?'var(--color-accent)':'var(--color-text)'})),
+        catNote:`Setembro: ${brl(spent[rc]||0)} · ${dPct>=0?dPct+'% acima':Math.abs(dPct)+'% abaixo'} de agosto · média dos 5 meses anteriores ${brl0(avg)}.`,top},
+      contas:{total:brl(ACCS.filter(a=>a.kind==='conta').reduce((a,x)=>a+x.bal,0)),accs:ACCS.filter(a=>a.kind==='conta').map(a=>({...a,bal:brl(a.bal)})),
+        cards:ACCS.filter(a=>a.kind==='cartao').map(a=>({name:a.name,sub:a.sub,fecha:a.fecha,vence:a.vence,dueCls:a.dias<=10?'tag tag-accent':'tag tag-neutral',fatura:brl(a.fatura),limite:brl0(a.limite),usoPct:a.fatura/a.limite*100,disp:brl0(a.limite-a.fatura),imp:()=>{this.setImp({dest:a.id});this.go('importar');}})),
+        proj:proj.map(x=>({...x,h:x.val/pmx*100})),projTotal:brl(projTotal),
+        inst:instTx.map(t=>{const left=t.inst[1]-t.inst[0];return {desc:t.desc,acc:accName(t.acc),label:`${t.inst[0]}/${t.inst[1]}`,per:brl(-t.amt),left:brl(-t.amt*left),end:`${MON[(8+left)%12]}/${8+left>11?'27':'26'}`};})},
+      comp:{headline:s.settled||Math.abs(owe)<.01?'Tudo acertado':owe>0?`Ana te deve ${brl(owe)}`:`Você deve ${brl(-owe)} para Ana`,
+        sub:s.settled?'Acerto registrado hoje, 23/09. Novos gastos compartilhados começam uma nova conta.':`Considerando ${compItems.length} gastos de setembro, divididos ${s.split}/${100-s.split}.`,
+        canSettle:!s.settled&&Math.abs(owe)>.01,heroBg:s.settled?'var(--color-surface)':'var(--color-accent)',heroFg:s.settled?'var(--color-text)':'var(--color-bg)',
+        splits:[[50,'50 / 50'],[60,'60 / 40'],[70,'70 / 30']].map(([v,label])=>({label,on:s.split===v,pick:()=>this.setState({split:v,settled:false})})),
+        mePaid:brl(mePaid),anaPaid:brl(anaPaid),meShare:brl(tot*my),anaShare:brl(tot*(1-my)),total:brl(tot),items:compItems,
+        members:[{ini:'VC',name:'Você (Rafa)',sub:'rafa@email.com',status:'Admin',tagCls:'tag tag-neutral',bg:'var(--color-text)',fg:'var(--color-bg)'},{ini:'AR',name:'Ana Ribeiro',sub:'Entrou em 02/07',status:'Ativa',tagCls:'tag tag-neutral',bg:'var(--color-surface)',fg:'var(--color-text)'},...s.invites.map(e=>({ini:e.slice(0,2).toUpperCase(),name:e,sub:'Convite enviado hoje',status:'Pendente',tagCls:'tag tag-outline',bg:'var(--color-bg)',fg:'var(--color-neutral-600)'}))],
+        cantInvite:!/^\S+@\S+\.\S+$|^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/.test(s.inviteEmail.trim())},
+      settle:()=>{this.setState({settled:true});this.flash('Acerto registrado');},
+      inviteEmail:s.inviteEmail,setInvite:e=>this.setState({inviteEmail:e.target.value}),sendInvite:()=>{this.setState(st=>({invites:[...st.invites,st.inviteEmail.trim()],inviteEmail:''}));this.flash('Convite enviado');},
+      copyLink:()=>{try{navigator.clipboard.writeText('https://caderneta.app/c/ape-vila-madalena');}catch(e){}this.flash('Link de convite copiado');},
+      cfgTabs:[['cat','Categorias'],['rules',`Regras (${s.rules.length})`],['alerts','Alertas']].map(([id,label])=>({label,on:s.cfgTab===id,pick:()=>this.setState({cfgTab:id})})),
+      cfg:{isCat:s.cfgTab==='cat',isRules:s.cfgTab==='rules',isAlerts:s.cfgTab==='alerts',cantAdd:!s.newCat.trim(),
+        cats:cats.map(c=>({name:c.name,abbr:c.name.slice(0,2).toUpperCase(),sub:`${txs.filter(t=>t.cat===c.id).length} lançamentos em setembro`,limit:s.budgets[c.id]?`Limite ${brl0(s.budgets[c.id])}`:'Sem limite'})),
+        rules:s.rules.slice().reverse().map(r=>({m:r.m,cat:catName(r.cat),origem:r.origem,del:()=>{this.setState(st=>({rules:st.rules.filter(x=>x.id!==r.id)}));this.flash('Regra excluída');}}))},
+      newCat:s.newCat,setNewCat:e=>this.setState({newCat:e.target.value}),addCat:()=>{const n=s.newCat.trim();this.setState(st=>({cats:[...st.cats,{id:'c'+Date.now(),name:n}],newCat:''}));this.flash(`Categoria ${n} criada`);},
+      prefs:s.prefs,togBudget:()=>this.setState(st=>({prefs:{...st.prefs,budget:!st.prefs.budget}})),
+      thrOpts:[70,80,90,100].map(v=>({label:`${v}%`,on:s.prefs.thr===v,pick:()=>this.setState(st=>({prefs:{...st.prefs,thr:v}}))})),
+      prefRows:[['fatura','Fatura perto do vencimento','Avisa 10 dias antes de cada cartão vencer'],['pix','Pix para pessoa física sem categoria','Lembra de categorizar transferências para pessoas'],['dup','Duplicatas na importação','Destaca lançamentos que já vieram em outro arquivo'],['weekly','Resumo semanal por IA','Toda segunda, em linguagem simples']].map(([k,label,sub])=>({label,sub,on:s.prefs[k],tog:()=>this.setState(st=>({prefs:{...st.prefs,[k]:!st.prefs[k]}}))})),
+      hasDetail:!!dt,det,hasToast:!!s.toast,toast:s.toast,scrollRef:this.scrollRef
+    };
+  }
+}
+</script>
+</body>
+</html>
