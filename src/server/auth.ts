@@ -2,9 +2,9 @@ import "server-only";
 import { createHash, randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { sessions, users } from "@/db/schema";
+import { sessions, tentativas, users } from "@/db/schema";
 
 const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number, opts: { N: number; r: number; p: number; maxmem: number }) => Promise<Buffer>;
 
@@ -87,20 +87,25 @@ export async function destroySession() {
   store.delete(SESSION_COOKIE);
 }
 
-/* ── Limite de tentativas (memória do processo) ─────────────────────────── */
+/* ── Limite de tentativas (Postgres, vale para todas as instâncias) ──────── */
 
-const tentativas = new Map<string, { n: number; ate: number }>();
-
-/** true se ainda pode tentar. Janela de 15 min, 10 tentativas por chave. */
-export function permitirTentativa(chave: string, max = 10, janelaMs = 15 * 60_000): boolean {
-  const agora = Date.now();
-  const t = tentativas.get(chave);
-  if (!t || t.ate < agora) {
-    tentativas.set(chave, { n: 1, ate: agora + janelaMs });
-    return true;
-  }
-  t.n++;
-  return t.n <= max;
+/** true se ainda pode tentar. Padrão: 10 tentativas por chave em 15 min. */
+export async function permitirTentativa(chave: string, max = 10, janelaMs = 15 * 60_000): Promise<boolean> {
+  const ate = new Date(Date.now() + janelaMs);
+  const [row] = await db.insert(tentativas).values({ chave, n: 1, ate })
+    .onConflictDoUpdate({
+      target: tentativas.chave,
+      set: {
+        n: sql`case when ${tentativas.ate} < now() then 1 else ${tentativas.n} + 1 end`,
+        ate: sql`case when ${tentativas.ate} < now() then excluded.ate else ${tentativas.ate} end`,
+      },
+    })
+    .returning({ n: tentativas.n });
+  // Limpeza oportunista das janelas vencidas.
+  if (Math.random() < 0.02) await db.delete(tentativas).where(lt(tentativas.ate, new Date()));
+  return row.n <= max;
 }
 
-export const limparTentativas = (chave: string) => tentativas.delete(chave);
+export const limparTentativas = async (chave: string) => {
+  await db.delete(tentativas).where(eq(tentativas.chave, chave));
+};

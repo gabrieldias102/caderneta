@@ -106,3 +106,10 @@ export const importacoes = pgTable("importacoes", {
   ignorados: integer("ignorados").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [primaryKey({ columns: [t.userId, t.id] })]);
+
+/** Limite de tentativas (login, cadastro, resumo por IA), compartilhado entre instâncias. */
+export const tentativas = pgTable("tentativas", {
+  chave: text("chave").primaryKey(),
+  n: integer("n").notNull(),
+  ate: timestamp("ate", { withTimezone: true }).notNull(),
+}, (t) => [index("tentativas_ate_idx").on(t.ate)]);

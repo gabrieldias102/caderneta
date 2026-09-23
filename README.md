@@ -24,9 +24,13 @@ Para o **resumo por IA** (Relatórios › Gerar de novo), defina `ANTHROPIC_API_
 
 Mudou o schema (`src/db/schema.ts`)? `npm run db:generate` cria a migração em `drizzle/` e `npm run db:migrate` aplica.
 
+## Produção
+
+Deploy na Vercel com Postgres gerenciado (Neon): veja **[docs/DEPLOY.md](docs/DEPLOY.md)**. Lá estão as variáveis de ambiente, como rodar as migrações no banco de produção e o checklist do que falta antes de abrir para outras pessoas.
+
 ## Backend
 
-- **Autenticação**: e-mail e senha (hash scrypt), sessão em cookie httpOnly de 30 dias com renovação automática; no banco fica só o sha256 do token. Limite de tentativas de login por IP + e-mail e comparação em tempo constante mesmo quando o e-mail não existe. `src/proxy.ts` só redireciona quem não tem cookie para `/entrar` — a validação real é feita em cada rota da API.
+- **Autenticação**: e-mail e senha (hash scrypt), sessão em cookie httpOnly de 30 dias com renovação automática; no banco fica só o sha256 do token. Limite de tentativas de login por IP + e-mail (guardado no Postgres, vale para todas as instâncias) e comparação em tempo constante mesmo quando o e-mail não existe. `src/proxy.ts` só redireciona quem não tem cookie para `/entrar` — a validação real é feita em cada rota da API.
 - **Dados**: todas as tabelas são particionadas por usuário (chave `(user_id, id)`); nenhuma consulta roda sem o `user_id` da sessão.
 - **Sincronização**: o app continua otimista — altera o estado na tela e o store (`src/lib/store.tsx`) calcula a diferença (`src/lib/sync.ts`) e envia em lote para `POST /api/sync`, que valida com Zod e grava numa transação. Sem conexão, os lotes se acumulam e são reenviados com backoff; o indicador "Tudo salvo / Salvando… / Sem conexão" fica na barra lateral.
 - **Arquivos importados**: continuam sendo lidos no navegador. O servidor recebe só os lançamentos já revisados — o arquivo nunca sai do aparelho.
@@ -38,7 +42,7 @@ Mudou o schema (`src/db/schema.ts`)? `npm run db:generate` cria a migração em 
 | `GET /api/estado` | Todos os dados do usuário |
 | `POST /api/sync` | Lote de alterações (upserts e exclusões por coleção) |
 | `POST /api/exemplo` | Substitui os dados pelos de exemplo |
-| `POST /api/resumo` | Resumo do mês com Claude (só agregados) |
+| `POST /api/resumo` | Resumo do mês com Claude (só agregados; 20 por usuário por dia) |
 
 ## Como está organizado
 
@@ -48,6 +52,7 @@ Mudou o schema (`src/db/schema.ts`)? `npm run db:generate` cria a migração em 
 | `src/components/` | Shell (sidebar ≥ 960px, barra inferior no celular), diálogos (detalhe, gasto em dinheiro, regra) e a linha de lançamento |
 | `src/lib/store.tsx` | Estado do app no cliente + fila de sincronização com o servidor |
 | `src/db/` · `drizzle/` | Schema do Postgres e migrações |
+| `docs/DEPLOY.md` · `vercel.json` | Deploy na Vercel |
 | `src/server/` | Autenticação, validação (Zod) e acesso a dados |
 | `src/lib/derive.ts` | Regras de negócio: despesas ignoram neutros, saldo, "quanto posso gastar", orçamentos, parcelas |
 | `src/lib/import/` | Parsers OFX/CSV/PDF, normalização de estabelecimento, detecção de Pix PF, parcelas, fatura e transferência própria, categorização (regras → histórico → palavras-chave) e duplicatas |
@@ -57,7 +62,7 @@ Mudou o schema (`src/db/schema.ts`)? `npm run db:generate` cria a migração em 
 ## O que ainda é provisório
 
 - **Recuperação de senha e verificação de e-mail**: ainda não existem (precisam de um provedor de e-mail).
-- **Limite de tentativas** fica na memória do processo — com mais de uma instância em produção, mover para Redis/Postgres.
+- **Excluir conta / exportar dados** (LGPD): ainda não existem.
 - **Carga inicial**: `GET /api/estado` traz todos os lançamentos do usuário; para históricos grandes, paginar por período.
 - **PDF**: leitura por texto com heurística genérica (`dd/mm descrição valor`); layouts específicos por banco e o fallback com LLM ainda não existem. OFX e CSV são os formatos confiáveis.
 - **Categorização automática**: tabela de palavras-chave, não um modelo treinado.

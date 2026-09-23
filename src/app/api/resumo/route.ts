@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { permitirTentativa } from "@/server/auth";
 import { autenticado } from "@/server/http";
 
 /**
@@ -31,7 +32,11 @@ function isAgregados(b: unknown): b is Agregados {
   return !!x && typeof x.mes === "string" && typeof x.receitas === "number" && typeof x.despesas === "number" && Array.isArray(x.categorias);
 }
 
-export const POST = autenticado(async (req) => {
+export const POST = autenticado(async (req, user) => {
+  // Cada resumo custa uma chamada à API: 20 por usuário por dia.
+  if (!await permitirTentativa(`resumo:${user.id}`, 20, 24 * 3600_000)) {
+    return NextResponse.json({ erro: "Limite diário de resumos atingido — tente amanhã" }, { status: 429 });
+  }
   const body = await req.json().catch(() => null);
   if (!isAgregados(body)) return NextResponse.json({ erro: "Dados inválidos" }, { status: 400 });
 
