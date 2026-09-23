@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { autenticado } from "@/server/http";
 
 /**
  * Resumo do mês por IA. Recebe apenas agregados (totais por categoria),
@@ -30,7 +31,7 @@ function isAgregados(b: unknown): b is Agregados {
   return !!x && typeof x.mes === "string" && typeof x.receitas === "number" && typeof x.despesas === "number" && Array.isArray(x.categorias);
 }
 
-export async function POST(req: Request) {
+export const POST = autenticado(async (req) => {
   const body = await req.json().catch(() => null);
   if (!isAgregados(body)) return NextResponse.json({ erro: "Dados inválidos" }, { status: 400 });
 
@@ -68,4 +69,4 @@ export async function POST(req: Request) {
     if (e instanceof Anthropic.APIError) return NextResponse.json({ erro: `Erro da API (${e.status})` }, { status: 502 });
     return NextResponse.json({ erro: "Falha de conexão" }, { status: 502 });
   }
-}
+});

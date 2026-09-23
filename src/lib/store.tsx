@@ -2,12 +2,12 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { chave } from "./import/normalize";
-import { seedState } from "./seed";
 import { catNome, contaNome } from "./derive";
 import { fmtD, toISO } from "./format";
+import { diffState, mergePayload, type SyncPayload } from "./sync";
 import type { DataState, ItemRevisao, Lancamento, Prefs } from "./types";
 
-const KEY = "caderneta:v1";
+export type SyncStatus = "salvo" | "salvando" | "offline";
 
 export type ImpStep = "upload" | "processing" | "review" | "done";
 export interface ImpState {
@@ -46,20 +46,97 @@ function useStore() {
   const [lancFilters, setLancFilters] = useState({ q: "", acc: "all", cat: "all", per: "mes" as "mes" | "7d" | "ant" });
   const hoje = useMemo(() => toISO(new Date()), []);
   const tt = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const flashRef = useRef<(msg: string) => void>(undefined);
 
-  useEffect(() => {
-    let s: DataState | null = null;
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) s = JSON.parse(raw);
-    } catch {}
-    setData(s && s.version === 1 ? s : seedState());
+  const [carga, setCarga] = useState<"carregando" | "ok" | "erro">("carregando");
+  const [sync, setSync] = useState<SyncStatus>("salvo");
+  /** Último estado já enviado (ou na fila) para o servidor. */
+  const base = useRef<DataState | null>(null);
+  const pendente = useRef<SyncPayload | null>(null);
+  const enviando = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const tentativa = useRef(0);
+
+  const sairParaLogin = useCallback(async () => {
+    await fetch("/api/auth/sair", { method: "POST" }).catch(() => {});
+    window.location.href = "/entrar";
   }, []);
 
+  const carregar = useCallback(async () => {
+    setCarga("carregando");
+    try {
+      const res = await fetch("/api/estado", { cache: "no-store" });
+      if (res.status === 401) return sairParaLogin();
+      if (!res.ok) throw new Error(String(res.status));
+      const s: DataState = await res.json();
+      base.current = s;
+      pendente.current = null;
+      setData(s);
+      setCarga("ok");
+    } catch {
+      setCarga("erro");
+    }
+  }, [sairParaLogin]);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
+  const flush = useCallback(async () => {
+    clearTimeout(timer.current);
+    if (enviando.current || !pendente.current) return;
+    const lote = pendente.current;
+    pendente.current = null;
+    enviando.current = true;
+    setSync("salvando");
+    try {
+      const res = await fetch("/api/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(lote) });
+      if (res.status === 401) return sairParaLogin();
+      if (res.status === 400) {
+        // Dado rejeitado pela validação: não adianta repetir. Recarrega do servidor.
+        const j = await res.json().catch(() => ({}));
+        console.error("sync rejeitado", j);
+        flashRef.current?.("Não foi possível salvar uma alteração — recarregando");
+        enviando.current = false;
+        return carregar();
+      }
+      if (!res.ok) throw new Error(String(res.status));
+      tentativa.current = 0;
+      setSync(pendente.current ? "salvando" : "salvo");
+    } catch {
+      pendente.current = pendente.current ? mergePayload(lote, pendente.current) : lote;
+      if (tentativa.current === 0) flashRef.current?.("Sem conexão — suas alterações serão salvas quando voltar");
+      tentativa.current++;
+      setSync("offline");
+      timer.current = setTimeout(() => flush(), Math.min(30_000, 1000 * 2 ** tentativa.current));
+    } finally {
+      enviando.current = false;
+    }
+    if (pendente.current && tentativa.current === 0) flush();
+  }, [carregar, sairParaLogin]);
+
+  // Cada mudança local vira um lote de diferenças para o servidor.
   useEffect(() => {
-    if (!data) return;
-    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
-  }, [data]);
+    if (!data || !base.current || data === base.current) return;
+    const diff = diffState(base.current, data);
+    base.current = data;
+    if (!diff) return;
+    pendente.current = pendente.current ? mergePayload(pendente.current, diff) : diff;
+    setSync("salvando");
+    if (tentativa.current === 0) {
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => flush(), 400);
+    }
+  }, [data, flush]);
+
+  // Ao fechar a aba, tenta mandar o que ficou pendente.
+  useEffect(() => {
+    const onHide = () => {
+      if (pendente.current) navigator.sendBeacon("/api/sync", new Blob([JSON.stringify(pendente.current)], { type: "application/json" }));
+    };
+    const onOnline = () => { tentativa.current = 0; flush(); };
+    window.addEventListener("pagehide", onHide);
+    window.addEventListener("online", onOnline);
+    return () => { window.removeEventListener("pagehide", onHide); window.removeEventListener("online", onOnline); };
+  }, [flush]);
 
   // Tema
   useEffect(() => {
@@ -77,6 +154,7 @@ function useStore() {
     setUI((u) => ({ ...u, toast: msg }));
     tt.current = setTimeout(() => setUI((u) => ({ ...u, toast: null })), 2600);
   }, []);
+  flashRef.current = flash;
 
   const setImp = useCallback(
     (patch: Partial<ImpState> | ((i: ImpState) => Partial<ImpState>)) =>
@@ -162,7 +240,22 @@ function useStore() {
   return {
     data, hoje, ui, setUI, imp, setImp, resetImp: () => setImpState(IMP0), lancFilters, setLancFilters,
     set, flash, updTx, askRule, ruleYes, confirmImport, setPrefs,
-    resetDemo: () => { setData(seedState()); setImpState(IMP0); },
+    carga, recarregar: carregar, sync,
+    /** Substitui tudo pelos dados de exemplo (no servidor). */
+    resetDemo: async () => {
+      await flush();
+      const res = await fetch("/api/exemplo", { method: "POST" });
+      if (!res.ok) throw new Error(String(res.status));
+      const s: DataState = await res.json();
+      base.current = s;
+      pendente.current = null;
+      setData(s);
+      setImpState(IMP0);
+    },
+    sair: async () => {
+      await flush();
+      await sairParaLogin();
+    },
   };
 }
 
@@ -171,7 +264,20 @@ const Ctx = createContext<Store | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const store = useStore();
-  if (!store.data) return null;
+  if (store.carga === "erro") {
+    return (
+      <div style={{ minHeight: "100dvh", display: "grid", placeItems: "center", padding: 16 }}>
+        <div style={{ display: "grid", gap: 12, maxWidth: 360, textAlign: "center", justifyItems: "center" }}>
+          <h4 style={{ margin: 0 }}>Não foi possível carregar seus dados</h4>
+          <div className="muted" style={{ fontSize: 14 }}>Verifique a conexão e tente de novo.</div>
+          <button className="btn btn-primary" onClick={store.recarregar}>Tentar de novo</button>
+        </div>
+      </div>
+    );
+  }
+  if (!store.data) {
+    return <div style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }} className="muted" aria-busy="true">Carregando…</div>;
+  }
   return <Ctx.Provider value={store as Store}>{children}</Ctx.Provider>;
 }
 

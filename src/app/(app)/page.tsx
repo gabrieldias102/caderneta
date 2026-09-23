@@ -91,6 +91,11 @@ export default function Dashboard() {
 
       <section className="section" style={{ marginTop: 24 }}>
         <div className="section-head"><h4>Últimos lançamentos</h4><button className="btn btn-ghost" onClick={() => router.push("/lancamentos")}>Ver todos</button></div>
+        {recent.length === 0 && (
+          <div className="muted" style={{ padding: "16px 0", fontSize: 14 }}>
+            Nada lançado ainda. Importe um extrato ou a fatura do cartão para começar.
+          </div>
+        )}
         {recent.map((t) => <TxRow key={t.id} t={t} compact />)}
       </section>
     </>

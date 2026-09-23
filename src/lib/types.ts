@@ -100,9 +100,20 @@ export interface Prefs {
   confStyle: "medidor" | "porcentagem";
 }
 
+export interface Grupo {
+  nome: string;
+  parceiro: { nome: string; iniciais: string; entrouEm: string };
+  split: number;
+  acertadoEm?: ISODate;
+  convites: string[];
+  gastosParceiro: GastoParceiro[];
+}
+
 export interface DataState {
   version: number;
   nome: string;
+  /** Só leitura: vem da conta do usuário. */
+  email?: string;
   categorias: Categoria[];
   contas: Conta[];
   lancamentos: Lancamento[];
@@ -110,13 +121,7 @@ export interface DataState {
   orcamentos: Record<string, number>;
   importacoes: Importacao[];
   prefs: Prefs;
-  grupo: {
-    nome: string;
-    parceiro: { nome: string; iniciais: string; entrouEm: string };
-    split: number;
-    acertadoEm?: ISODate;
-    convites: string[];
-    gastosParceiro: GastoParceiro[];
-  };
+  /** Grupo de contas compartilhadas; ausente até o usuário criar um. */
+  grupo?: Grupo;
   resumoIA?: { mes: string; texto: string };
 }

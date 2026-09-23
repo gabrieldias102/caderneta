@@ -4,15 +4,45 @@ import { useState } from "react";
 import { Link as LinkIcon } from "lucide-react";
 import { PageHead, Seg } from "@/components/ui";
 import { kindOf, periodo } from "@/lib/derive";
-import { brl, fmtD, monthOf } from "@/lib/format";
+import { brl, fmtD, initials, monthOf } from "@/lib/format";
+import type { Grupo as GrupoT } from "@/lib/types";
 import { useApp } from "@/lib/store";
 
 const RE_CONVITE = /^\S+@\S+\.\S+$|^\(?\d{2}\)?\s?9?\d{4}-?\d{4}$/;
 
 export default function Compartilhadas() {
+  const { data } = useApp();
+  return data.grupo ? <Grupo g={data.grupo} /> : <SemGrupo />;
+}
+
+/** Primeiro acesso: cria o grupo e a pessoa com quem você divide as contas. */
+function SemGrupo() {
+  const { set, flash, hoje } = useApp();
+  const [nome, setNome] = useState("");
+  const [pessoa, setPessoa] = useState("");
+  const ok = nome.trim() && pessoa.trim();
+  return (
+    <>
+      <PageHead kicker="Divida gastos com quem mora com você" title="Contas compartilhadas" />
+      <form className="card" style={{ maxWidth: 520, display: "grid", gap: 14 }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!ok) return;
+          set((s) => ({ ...s, grupo: { nome: nome.trim(), parceiro: { nome: pessoa.trim(), iniciais: initials(pessoa), entrouEm: fmtD(hoje) }, split: 50, convites: [], gastosParceiro: [] } }));
+          flash("Grupo criado");
+        }}>
+        <div className="muted" style={{ fontSize: 14 }}>Crie um grupo para marcar gastos como compartilhados e ver quem deve quanto.</div>
+        <div className="field"><label htmlFor="g-nome">Nome do grupo</label><input id="g-nome" className="input" placeholder="Ex.: Apê Vila Madalena" value={nome} onChange={(e) => setNome(e.target.value)} /></div>
+        <div className="field"><label htmlFor="g-pessoa">Com quem você divide</label><input id="g-pessoa" className="input" placeholder="Nome da pessoa" value={pessoa} onChange={(e) => setPessoa(e.target.value)} /></div>
+        <div><button className="btn btn-primary" disabled={!ok}>Criar grupo</button></div>
+      </form>
+    </>
+  );
+}
+
+function Grupo({ g }: { g: GrupoT }) {
   const { data, hoje, set, flash } = useApp();
   const [convite, setConvite] = useState("");
-  const g = data.grupo;
   const { ym } = periodo(hoje);
   const ana = g.parceiro.nome.split(" ")[0];
 
@@ -39,7 +69,7 @@ export default function Compartilhadas() {
     ? `Acerto registrado hoje, ${fmtD(hoje)}. Novos gastos compartilhados começam uma nova conta.`
     : `Considerando ${itens.length} gasto${itens.length === 1 ? "" : "s"} do mês, divididos ${g.split}/${100 - g.split}.`;
 
-  const setG = (patch: Partial<typeof g>) => set((s) => ({ ...s, grupo: { ...s.grupo, ...patch } }));
+  const setG = (patch: Partial<GrupoT>) => set((s) => (s.grupo ? { ...s, grupo: { ...s.grupo, ...patch } } : s));
 
   return (
     <>
@@ -85,7 +115,7 @@ export default function Compartilhadas() {
         <section className="section">
           <div className="section-head"><h4>Pessoas</h4></div>
           {[
-            { ini: "VC", name: `Você (${data.nome})`, sub: "rafa@email.com", status: "Admin", cls: "tag tag-neutral", mine: true },
+            { ini: "VC", name: `Você (${data.nome})`, sub: data.email ?? "", status: "Admin", cls: "tag tag-neutral", mine: true },
             { ini: g.parceiro.iniciais, name: g.parceiro.nome, sub: `Entrou em ${g.parceiro.entrouEm}`, status: "Ativa", cls: "tag tag-neutral", mine: false },
             ...g.convites.map((e) => ({ ini: e.slice(0, 2).toUpperCase(), name: e, sub: "Convite enviado", status: "Pendente", cls: "tag tag-outline", mine: false, pend: true })),
           ].map((p) => (

@@ -59,12 +59,14 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="foot">
           <div className="label-caps" style={{ letterSpacing: ".08em" }}>Sem conexão com o banco</div>
           <div style={{ fontSize: 12, color: "var(--color-neutral-700)" }}>Tudo entra por arquivo ou à mão.</div>
+          <SyncBadge />
         </div>
       </aside>
 
       <div className="main">
         <header className="topbar">
           <div className="logo">Caderneta<i>.</i></div>
+          <SyncBadge compact />
           <span className="tag tag-neutral">{cap(MES[Number(ym.slice(5)) - 1].slice(0, 3))} {ym.slice(0, 4)}</span>
         </header>
         <main className="content anim-in" key={path}>
@@ -108,6 +110,19 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="toast"><Check size={16} />{ui.toast}</div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Estado do salvamento no servidor. */
+function SyncBadge({ compact }: { compact?: boolean }) {
+  const { sync } = useApp();
+  if (compact && sync === "salvo") return null;
+  const label = sync === "salvo" ? "Tudo salvo" : sync === "salvando" ? "Salvando…" : "Sem conexão — tentando de novo";
+  return (
+    <div role="status" aria-live="polite" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: sync === "offline" ? "var(--color-accent-700)" : "var(--color-neutral-700)" }}>
+      <span aria-hidden style={{ width: 7, height: 7, borderRadius: 99, background: sync === "salvo" ? "var(--color-neutral-400)" : "var(--color-accent)", animation: sync === "salvando" ? "cd-blink 1s infinite" : undefined }} />
+      {compact && sync === "offline" ? "Sem conexão" : label}
     </div>
   );
 }

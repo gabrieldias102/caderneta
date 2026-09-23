@@ -11,7 +11,7 @@ import type { Prefs } from "@/lib/types";
 type Tab = "cat" | "rules" | "alerts" | "tema";
 
 export default function Configuracoes() {
-  const { data, hoje, set, setPrefs, flash, resetDemo } = useApp();
+  const { data, hoje, set, setPrefs, flash, resetDemo, sair } = useApp();
   const [tab, setTab] = useState<Tab>("cat");
   const [nova, setNova] = useState("");
   const { ym } = periodo(hoje);
@@ -38,7 +38,7 @@ export default function Configuracoes() {
     <>
       <PageHead title="Configurações" />
       <Seg name="cfg" stretch value={tab} onChange={setTab} style={{ marginBottom: 20, maxWidth: 560 }}
-        options={[["cat", "Categorias"], ["rules", `Regras (${data.regras.length})`], ["alerts", "Alertas"], ["tema", "Aparência"]]} />
+        options={[["cat", "Categorias"], ["rules", `Regras (${data.regras.length})`], ["alerts", "Alertas"], ["tema", "Conta"]]} />
 
       {tab === "cat" && (
         <div style={{ maxWidth: 640 }}>
@@ -115,8 +115,15 @@ export default function Configuracoes() {
             <Seg name="conf" value={p.confStyle} onChange={(v) => setPrefs({ confStyle: v })} options={[["medidor", "Medidor"], ["porcentagem", "Porcentagem"]]} />
           </div>
           <div className="row" style={{ padding: "14px 0", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-            <div style={{ marginRight: "auto" }}><div style={{ fontWeight: 600, fontSize: 14 }}>Dados de exemplo</div><div style={{ fontSize: 12 }} className="muted">Tudo fica salvo só neste navegador. Restaurar apaga suas alterações.</div></div>
-            <button className="btn btn-secondary" onClick={() => { if (confirm("Restaurar os dados de exemplo? Suas alterações serão perdidas.")) { resetDemo(); flash("Dados de exemplo restaurados"); } }}>Restaurar</button>
+            <div style={{ marginRight: "auto" }}><div style={{ fontWeight: 600, fontSize: 14 }}>Dados de exemplo</div><div style={{ fontSize: 12 }} className="muted">Substitui todos os seus lançamentos, contas e regras pelos dados de exemplo.</div></div>
+            <button className="btn btn-secondary" onClick={async () => {
+              if (!confirm("Carregar os dados de exemplo? Todos os seus dados atuais serão apagados.")) return;
+              try { await resetDemo(); flash("Dados de exemplo carregados"); } catch { flash("Não foi possível carregar agora"); }
+            }}>Carregar exemplo</button>
+          </div>
+          <div className="row" style={{ padding: "14px 0", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ marginRight: "auto", minWidth: 0 }}><div style={{ fontWeight: 600, fontSize: 14 }}>{data.nome}</div><div style={{ fontSize: 12 }} className="muted ellipsis">{data.email}</div></div>
+            <button className="btn btn-secondary" onClick={sair}>Sair</button>
           </div>
         </div>
       )}

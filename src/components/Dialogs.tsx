@@ -21,7 +21,8 @@ export function DetailDialog() {
   if (t.estabelecimento && !neutral) rows.push(["Estabelecimento", t.estabelecimento]);
   if (t.parcela) rows.push(["Parcela", `${t.parcela.atual} de ${t.parcela.total} · total ${brl(-t.valor * t.parcela.total)}`]);
   if (t.origem === "arquivo") rows.push(["No extrato", t.descricaoOriginal]);
-  const parceiro = data.grupo.parceiro.nome.split(" ")[0];
+  const grupo = data.grupo;
+  const parceiro = grupo?.parceiro.nome.split(" ")[0];
   const ym = monthOf(t.data);
 
   return (
@@ -66,11 +67,11 @@ export function DetailDialog() {
                 {data.categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </select>
             </div>
-            {k === "expense" && (
+            {k === "expense" && grupo && (
               <label style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 14, cursor: "pointer", minHeight: 32 }}>
                 <input type="checkbox" checked={!!t.compartilhado}
                   onChange={() => { updTx(t.id, { compartilhado: !t.compartilhado }); flash(t.compartilhado ? "Removido das compartilhadas" : `Marcado como compartilhado com ${parceiro}`); }} />
-                Compartilhado com {parceiro} ({data.grupo.nome})
+                Compartilhado com {parceiro} ({grupo.nome})
               </label>
             )}
           </>
