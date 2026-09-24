@@ -131,7 +131,7 @@ export default function Lancamentos() {
       </div>
 
       {list.length === 0 && (
-        <div className="grid max-w-[420px] gap-2.5 py-10">
+        <div className="grid max-w-105 gap-2.5 py-10">
           <h4>Nada por aqui</h4>
           <div className="text-md text-neutral-700">
             Nenhum lançamento com esses filtros. Se for um mês ainda não

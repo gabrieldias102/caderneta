@@ -14,7 +14,7 @@ export function RegrasTab() {
   };
 
   return (
-    <div className="max-w-[720px]">
+    <div className="max-w-180">
       <div className="mb-3 text-md text-neutral-700">
         Regras são criadas quando você corrige uma categoria e escolhe “aplicar
         sempre”. Elas rodam antes da sugestão automática.

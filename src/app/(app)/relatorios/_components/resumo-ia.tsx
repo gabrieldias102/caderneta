@@ -97,7 +97,7 @@ export function ResumoIA({
         </Button>
       </div>
       <p
-        className="max-w-[760px] text-[19px] leading-normal text-pretty"
+        className="max-w-190 text-[19px] leading-normal text-pretty"
         aria-live="polite"
       >
         {ocultos
