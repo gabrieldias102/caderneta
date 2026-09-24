@@ -8,7 +8,7 @@ import {
   ParseError,
   type RawTx,
 } from "./parsers";
-import { detectarDestino } from "./pipeline";
+import { detectarDestino, sugerirConta } from "./pipeline";
 
 export const EXTENSOES = ["pdf", "ofx", "csv"] as const;
 export const MAX_BYTES = 10 * 1024 * 1024;
@@ -16,6 +16,8 @@ export const MAX_BYTES = 10 * 1024 * 1024;
 export interface ArquivoLido {
   rows: RawTx[];
   destino?: Conta;
+  /** Conta a criar quando o banco do arquivo não está entre as do usuário. */
+  sugestao?: Omit<Conta, "id">;
   hint: string;
 }
 
@@ -67,6 +69,7 @@ export async function lerArquivo(
     return {
       rows: r.rows,
       destino,
+      sugestao: destino ? undefined : sugerirConta(file.name, text, r.cartao),
       hint: destino
         ? `Extrato ${destino.nome} detectado`
         : "OFX — escolha o destino",
@@ -75,16 +78,14 @@ export async function lerArquivo(
   if (ext === "csv") {
     const text = await file.text();
     const r = parseCSV(text, ano);
-    const destino = detectarDestino(
-      file.name,
-      r.formato === "nubank-fatura" ? "nubank fatura" : "",
-      contas,
-      r.formato === "nubank-fatura" ? true : undefined,
-    );
+    const pista = r.formato === "nubank-fatura" ? "nubank fatura" : "";
+    const cartao = r.formato === "nubank-fatura" ? true : undefined;
+    const destino = detectarDestino(file.name, pista, contas, cartao);
     const tipo = destino?.tipo === "cartao" ? "Fatura" : "Extrato";
     return {
       rows: r.rows,
       destino,
+      sugestao: destino ? undefined : sugerirConta(file.name, pista, cartao),
       hint: destino
         ? `${tipo} ${destino.nome.split(" ")[0]} detectad${tipo === "Fatura" ? "a" : "o"}`
         : "CSV — escolha o destino",
@@ -93,12 +94,9 @@ export async function lerArquivo(
   if (ext === "pdf") {
     const linhas = await textoDoPDF(await file.arrayBuffer());
     const texto = linhas.join("\n");
-    const destino = detectarDestino(
-      file.name,
-      texto,
-      contas,
-      /FATURA|CARTAO DE CREDITO|CARTÃO DE CRÉDITO/i.test(texto) || undefined,
-    );
+    const cartao =
+      /FATURA|CARTAO DE CREDITO|CARTÃO DE CRÉDITO/i.test(texto) || undefined;
+    const destino = detectarDestino(file.name, texto, contas, cartao);
     const alvo = contaEscolhida ?? destino;
     const rows = parsePDFText(linhas, {
       cartao: alvo?.tipo === "cartao",
@@ -111,6 +109,7 @@ export async function lerArquivo(
     return {
       rows,
       destino,
+      sugestao: destino ? undefined : sugerirConta(file.name, texto, cartao),
       hint: destino
         ? `${destino.tipo === "cartao" ? "Fatura" : "Extrato"} ${destino.nome.split(" ")[0]} detectad${destino.tipo === "cartao" ? "a" : "o"}`
         : "PDF — escolha o destino",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { maskValorBR, parseValorBR } from "../format";
+import { maskValorBR, parseValorBR, proximoDia } from "../format";
 
 describe("maskValorBR", () => {
   it("preenche pelos centavos e põe ponto de milhar e vírgula", () => {
@@ -18,5 +18,19 @@ describe("maskValorBR", () => {
 
   it("devolve texto que o parseValorBR entende", () => {
     expect(parseValorBR(maskValorBR("123456"))).toBe(1234.56);
+  });
+});
+
+describe("proximoDia", () => {
+  it("usa o mês atual quando o dia ainda não passou", () => {
+    expect(proximoDia("2026-09-24", 25)).toBe("2026-09-25");
+    expect(proximoDia("2026-09-24", 24)).toBe("2026-09-24");
+  });
+  it("pula para o mês seguinte quando o dia já passou", () => {
+    expect(proximoDia("2026-09-24", 2)).toBe("2026-10-02");
+    expect(proximoDia("2026-12-20", 5)).toBe("2027-01-05");
+  });
+  it("limita ao último dia do mês", () => {
+    expect(proximoDia("2026-02-10", 31)).toBe("2026-02-28");
   });
 });

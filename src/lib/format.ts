@@ -109,6 +109,14 @@ export function daysInMonth(ym: string) {
   return new Date(y, m, 0).getDate();
 }
 
+/** Próxima data (a partir de `hoje`, inclusive) que cai no dia `dia` do mês; limita ao último dia. */
+export function proximoDia(hoje: ISODate, dia: number): ISODate {
+  const noMes = (ym: string) =>
+    `${ym}-${String(Math.min(dia, daysInMonth(ym))).padStart(2, "0")}`;
+  const d = noMes(hoje.slice(0, 7));
+  return d >= hoje ? d : noMes(addMonths(hoje.slice(0, 7), 1));
+}
+
 /** Aceita "1.234,56", "1234.56", "25", "25,5". */
 export function parseValorBR(raw: string): number {
   let s = String(raw)

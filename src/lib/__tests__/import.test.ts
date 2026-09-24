@@ -5,9 +5,11 @@ import { detectar } from "../import/normalize";
 import { parseCSV, parseOFX, parsePDFText } from "../import/parsers";
 import {
   ajustarSinal,
+  detectarDestino,
   montarRevisao,
   nivelConfianca,
   precisaRevisao,
+  sugerirConta,
 } from "../import/pipeline";
 import { seedState } from "../seed";
 
@@ -58,6 +60,30 @@ describe("detectar", () => {
     expect(detectar("PAGTO CARTAO NUBANK").tipo).toBe("fatura");
     expect(detectar("TRANSF ENTRE CONTAS").tipo).toBe("transferencia");
   });
+  it.each([
+    ["Dl*Uberrides", "Uber"],
+    ["Dm*Spotify P4726", "Spotify"],
+    ["Mp *Tataparkvinte", "Tataparkvinte"],
+    ["Jim.Com* Estacao Cafe", "Estacao Cafe"],
+    ["Cappta *Alecrim F. Ham", "Alecrim F. Ham"],
+    ["99Food - NuPay", "99Food"],
+    ["Dl*Google Youtub", "YouTube"],
+    ["Amazonmktplc*Raissagas", "Amazon"],
+    ["Lanches e Cia Comercio", "Lanches"],
+    ["68.682.881 Max da Sil", "Max da Sil"],
+  ])("limpa descrição da fatura Nubank: %s → %s", (raw, nome) =>
+    expect(detectar(raw).estabelecimento).toBe(nome),
+  );
+  it("lê Pix no Crédito do Nubank", () => {
+    expect(detectar("Pix no Crédito - Jorge Junior Santos da Silva")).toEqual({
+      estabelecimento: "Jorge Junior Santos da Silva",
+      pix: { pessoaFisica: true },
+    });
+    expect(
+      detectar("Pix no Crédito - ASSOCIACAO EMPRESAS TRANSPORTES DE PALEGRE")
+        .pix,
+    ).toEqual({ pessoaFisica: false });
+  });
 });
 
 describe("parsers", () => {
@@ -76,6 +102,17 @@ describe("parsers", () => {
     expect(r.formato).toBe("nubank-fatura");
     expect(r.rows[0].valor).toBe(-52.3);
     expect(r.rows.at(-1)!.valor).toBe(2340.5);
+  });
+  it("lê CSV da fatura Nubank com vírgula decimal entre aspas", () => {
+    const r = parseCSV(
+      [
+        "date,title,amount",
+        '2026-09-24,Lanches e Cia Comercio,"12,50"',
+        '2026-09-10,Pagamento recebido,"- 5.296,79"',
+      ].join("\n"),
+    );
+    expect(r.formato).toBe("nubank-fatura");
+    expect(r.rows.map((x) => x.valor)).toEqual([-12.5, 5296.79]);
   });
   it("lê CSV genérico com ; e vírgula decimal", () => {
     const r = parseCSV(exemplo("extrato.csv"));
@@ -112,6 +149,26 @@ describe("parsers", () => {
         cartao,
       )[0].valor,
     ).toBe(-10);
+  });
+});
+
+describe("sugerirConta", () => {
+  it("sugere o cartão Nubank para a fatura sem conta cadastrada", () => {
+    expect(
+      sugerirConta("Nubank_2026-10-11.csv", "nubank fatura", true),
+    ).toEqual({
+      nome: "Nubank",
+      tipo: "cartao",
+      banco: "nubank",
+      sub: "Cartão de crédito",
+    });
+  });
+  it("não sugere nada sem banco reconhecível", () => {
+    expect(sugerirConta("extrato.csv", "")).toBeUndefined();
+  });
+  it("a conta sugerida é reconhecida na próxima importação", () => {
+    const conta = { id: "n", ...sugerirConta("Nubank_x.csv", "", true)! };
+    expect(detectarDestino("Nubank_y.csv", "", [conta], true)?.id).toBe("n");
   });
 });
 

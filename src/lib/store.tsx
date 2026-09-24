@@ -14,7 +14,7 @@ import { chave } from "./import/normalize";
 import { catNome, contaNome } from "./derive";
 import { fmtD, setValoresOcultos, toISO } from "./format";
 import { diffState, mergePayload, type SyncPayload } from "./sync";
-import type { DataState, ItemRevisao, Lancamento, Prefs } from "./types";
+import type { Conta, DataState, ItemRevisao, Lancamento, Prefs } from "./types";
 
 export type SyncStatus = "salvo" | "salvando" | "offline";
 
@@ -27,6 +27,8 @@ export interface ImpState {
     hint: string;
     obj?: File;
     exemplo?: string;
+    /** Banco reconhecido no arquivo, mas sem conta cadastrada. */
+    sugestao?: Omit<Conta, "id">;
   } | null;
   dest: string | null;
   progress: number;

@@ -7,21 +7,21 @@ const strip = (s: string) =>
 const CONHECIDOS: [RegExp, string][] = [
   [/\bIFOOD\b|\bIFD\*/, "iFood"],
   [/\bUBER\s*\*?\s*EATS\b/, "Uber Eats"],
-  [/\bUBER\b/, "Uber"],
+  [/\bUBER(RIDES|TRIP)?\b/, "Uber"],
+  [/\b99\s*FOOD\b/, "99Food"],
   [/\b99\s*(APP|POP|TAXI|RIDE)\b|\b99APP\b/, "99"],
   [/\bRAPPI\b/, "Rappi"],
   [/\bNETFLIX\b/, "Netflix"],
   [/\bSPOTIFY\b/, "Spotify"],
   [/\bDISNEY\s*PLUS\b|\bDISNEYPLUS\b/, "Disney+"],
   [/\bAMAZON\s*PRIME\b|\bPRIME\s*VIDEO\b/, "Amazon Prime"],
-  [/\bAMAZON\b|\bAMZN\b/, "Amazon"],
-  [
-    /\bMERCADO\s*LIVRE\b|\bMERCADOLIVRE\b|\bMERCPAGO\b|\bMP\s*\*/,
-    "Mercado Livre",
-  ],
+  [/\bAMAZON(MKTPLC)?\b|\bAMZN\b/, "Amazon"],
+  // "MP *LOJA" é Mercado Pago cobrando por outra loja: tratado como adquirente.
+  [/\bMERCADO\s*LIVRE\b|\bMERCADOLIVRE\b/, "Mercado Livre"],
   [/\bMAGAZINE\s*LUIZA\b|\bMAGALU\b/, "Magalu"],
   [/\bDROGA\s*RAIA\b|\bDROGARAIA\b/, "Droga Raia"],
   [/\bDROGASIL\b/, "Drogasil"],
+  [/\bPANVEL\b/, "Panvel"],
   [/\bPAGUE\s*MENOS\b/, "Pague Menos"],
   [/\bIPIRANGA\b/, "Posto Ipiranga"],
   [/\bSHELL\b/, "Posto Shell"],
@@ -32,6 +32,7 @@ const CONHECIDOS: [RegExp, string][] = [
   [/\bSMART\s*FIT\b|\bSMARTFIT\b/, "Smart Fit"],
   [/\bCINEMARK\b/, "Cinemark"],
   [/\bAPPLE\.COM\b|\bAPPLE\b/, "Apple"],
+  [/\bYOUTUBE\b|\bGOOGLE\s*YOUTUB/, "YouTube"],
   [/\bGOOGLE\b/, "Google"],
   [/\bSTEAM\b/, "Steam"],
   [/\bENEL\b/, "Enel"],
@@ -74,10 +75,13 @@ const RE_FATURA =
 const RE_TRANSF =
   /TRANSF(ERENCIA)?\.?\s+(ENTRE\s+CONTAS|MESMA\s+TITULARIDADE|PROPRIA)|\bTED\s+PROPRIA|APLICACAO|RESGATE/;
 const RE_PIX = /\bPIX\b/;
+/** Prefixo de adquirente — o estabelecimento vem depois: "DL*UBERRIDES", "MP *LOJA", "JIM.COM* CAFE". */
+const RE_ADQUIRENTE =
+  /^(DL|DM|DC|EBN|HTM|IFD|PAG|PG|PP|MP|EC|ZIG|CAPPTA|JIM\.COM|SUMUP|STONE|CIELO|PAGSEGURO)\s*\*\s*/;
 const RE_PIX_PREFIXO =
-  /^.*?\bPIX\b\s*(QRS\s+)?(ENV(IADO)?|REC(EBIDO)?|TRANSF(ERENCIA)?|ENVIO|RECEB\.?)?\s*[-:*]?\s*(PARA|DE)?\s*/;
+  /^.*?\bPIX\b\s*(QRS\s+)?(ENV(IADO)?|REC(EBIDO)?|TRANSF(ERENCIA)?|ENVIO|RECEB\.?|NO\s+CREDITO)?\s*[-:*]?\s*(PARA|DE)?\s*/;
 const RE_PJ =
-  /\b(LTDA|EIRELI|ME|EPP|S\/?A|SA|CIA|COMERCIO|RESTAURANTE|MERCADO|LOJA|FARMACIA|POSTO|PADARIA|BAR|SUPERMERCADO|SERVICOS|IFOOD|UBER)\b|\d{2}\.\d{3}\.\d{3}\/\d{4}/;
+  /\b(LTDA|EIRELI|ME|EPP|S\/?A|SA|CIA|COMERCIO|RESTAURANTE|MERCADO|LOJA|FARMACIA|POSTO|PADARIA|BAR|SUPERMERCADO|SERVICOS|IFOOD|UBER|ASSOCIACAO|EMPRESAS?|TRANSPORTES?|COOPERATIVA|INSTITUTO)\b|\d{2}\.\d{3}\.\d{3}\/\d{4}/;
 const RE_CPF_MASC = /\*{3}\.?\d{3}\.?\d{3}-?\*{2}|\d{3}\.\d{3}\.\d{3}-\d{2}/;
 
 export function detectar(descricaoOriginal: string): Deteccao {
@@ -135,15 +139,20 @@ export function detectar(descricaoOriginal: string): Deteccao {
 
   const limpo = base
     .replace(
-      /^(COMPRA\s+(CARTAO|NO\s+DEBITO|DEBITO|CREDITO)|COMPRA|DEBITO|PAG\*|PG\s*\*|EC\s*\*|PAGSEGURO\s*\*?|SUMUP\s*\*?|STONE\s*\*?|CIELO\s*\*?)\s*/,
+      /^(COMPRA\s+(CARTAO|NO\s+DEBITO|DEBITO|CREDITO)|COMPRA|DEBITO|PAGSEGURO|SUMUP|STONE|CIELO)\s+/,
       "",
     )
+    .replace(RE_ADQUIRENTE, "")
+    // CNPJ/código numérico no começo: "68.682.881 MAX DA SIL", "00013 SH IGUATEMI".
+    .replace(/^[\d./-]+\s+/, "")
     .replace(/\*.*$/, "")
     .replace(/\b\d{3,}\b/g, " ")
     .replace(/\s+-\s+.*$/, "")
     .replace(RUIDO, " ")
     .replace(/[^A-Z0-9\s&'.]/g, " ")
     .replace(/\s+/g, " ")
+    // Sobra de "LANCHES E CIA COMERCIO" depois de tirar o ruído.
+    .replace(/(\s+(E|DE|DA|DO|DAS|DOS|&))+\s*$/, "")
     .trim();
   out.estabelecimento = titleCase(limpo || base)
     .replace(/\bDo Ze\b/i, "do Zé")

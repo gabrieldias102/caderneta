@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowRight, PenLine, Upload, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, PenLine, Plus, Upload, X } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/button";
 import { FormError } from "@/components/ui/form";
 import { IconBadge } from "@/components/ui/icon-badge";
@@ -18,6 +19,7 @@ import { fmtD } from "@/lib/format";
 import { ParseError } from "@/lib/import/parsers";
 import { MAX_BYTES, extensaoValida, lerArquivo } from "@/lib/import/read";
 import { useApp } from "@/lib/store";
+import type { Conta } from "@/lib/types";
 
 const EXEMPLOS = [
   "fatura-nubank-set.csv",
@@ -42,9 +44,16 @@ export function UploadStep() {
     });
     try {
       const r = await lerArquivo(f, data.contas);
+      const s = r.sugestao;
       setImp((i) => ({
-        file: i.file && { ...i.file, hint: r.hint },
-        dest: r.destino?.id ?? i.dest,
+        file: i.file && {
+          ...i.file,
+          hint: s
+            ? `${s.tipo === "cartao" ? "Fatura" : "Extrato"} ${s.nome} · ${r.rows.length} lançamentos`
+            : r.hint,
+          sugestao: s,
+        },
+        dest: r.destino?.id ?? (s ? null : i.dest),
       }));
     } catch (e) {
       setImp((i) => ({
@@ -97,6 +106,7 @@ export function UploadStep() {
               </IconButton>
             </div>
           )}
+          {imp.file?.sugestao && <NovaConta sugestao={imp.file.sugestao} />}
           {imp.error && <FormError>{imp.error}</FormError>}
           <div className="grid gap-1.5">
             <div className="text-xs text-neutral-700">
@@ -116,6 +126,12 @@ export function UploadStep() {
             Para onde vão os lançamentos?
           </h4>
           <DestinationPicker />
+          <Link
+            href="/contas"
+            className="text-sm font-semibold text-accent-700 hover:underline"
+          >
+            Cadastrar outra conta ou cartão
+          </Link>
           <Button
             variant="primary"
             size="lg"
@@ -126,6 +142,11 @@ export function UploadStep() {
             Ler arquivo e sugerir categorias
             <ArrowRight size={16} />
           </Button>
+          {imp.file?.obj && !imp.dest && (
+            <div className="text-xs font-semibold text-accent-700">
+              Escolha acima para onde vão os lançamentos.
+            </div>
+          )}
           <div className="text-xs text-neutral-700">
             O arquivo é lido e descartado. Nada é enviado ao banco e nada é
             lançado antes da sua revisão.
@@ -197,6 +218,43 @@ function DropZone({ onFile }: { onFile: (f: File | undefined) => void }) {
     </>
   );
 }
+
+/** O arquivo é de um banco sem conta cadastrada: oferece criá-la e já usar como destino. */
+function NovaConta({ sugestao }: { sugestao: Omit<Conta, "id"> }) {
+  const { set, setImp, flash } = useApp();
+  const cartao = sugestao.tipo === "cartao";
+  const rotulo = `${cartao ? "cartão" : "conta"} ${sugestao.nome}`;
+  const criar = () => {
+    const conta: Conta = { id: `conta${Date.now()}`, ...sugestao };
+    set((s) => ({ ...s, contas: [...s.contas, conta] }));
+    setImp((i) => ({
+      dest: conta.id,
+      file: i.file && {
+        ...i.file,
+        hint: `${cartao ? "Fatura" : "Extrato"} ${sugestao.nome} detectad${cartao ? "a" : "o"}`,
+        sugestao: undefined,
+      },
+    }));
+    flash(`${cap(rotulo)} criad${cartao ? "o" : "a"}`);
+  };
+  return (
+    <div className="grid gap-2.5 rounded-md border border-accent bg-accent-100 p-3 text-md">
+      <span>
+        Parece {cartao ? "uma fatura" : "um extrato"} {sugestao.nome}, mas você
+        ainda não tem {cartao ? "um" : "uma"} {rotulo} cadastrad
+        {cartao ? "o" : "a"}.
+      </span>
+      <div>
+        <Button variant="primary" size="sm" onClick={criar}>
+          <Plus size={16} />
+          Criar {rotulo} e usar como destino
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function DestinationPicker() {
   const { data, imp, setImp } = useApp();

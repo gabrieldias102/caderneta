@@ -5,19 +5,23 @@ import type { RawTx } from "./parsers";
 
 /** Modelo simples de sugestão: palavras-chave → categoria, com confiança. */
 const MODELO: [RegExp, string, number][] = [
-  [/IFOOD|RAPPI|UBER\s*EATS|AIQFOME|DELIVERY|ZE\s*DELIVERY/, "delivery", 0.95],
+  [
+    /IFOOD|RAPPI|UBER\s*EATS|AIQFOME|DELIVERY|ZE\s*DELIVERY|99\s*FOOD/,
+    "delivery",
+    0.95,
+  ],
   [
     /UBER|\b99\b|CABIFY|POSTO|IPIRANGA|SHELL|PETROBRAS|ESTACIONAMENTO|ESTAPAR|SEM\s*PARAR|CONECTCAR|METRO|BILHETE/,
     "transporte",
     0.93,
   ],
   [
-    /NETFLIX|SPOTIFY|DISNEY|PRIME|HBO|\bMAX\b|YOUTUBE|DEEZER|GLOBOPLAY|ICLOUD|APPLE\.COM\/BILL/,
+    /NETFLIX|SPOTIFY|DISNEY|PRIME|HBO|YOUTUBE|DEEZER|GLOBOPLAY|ICLOUD|APPLE\.COM\/BILL/,
     "assinaturas",
     0.98,
   ],
   [
-    /DROGA|DROGASIL|FARMACIA|PAGUE\s*MENOS|SMART\s*FIT|SMARTFIT|UNIMED|AMIL|HOSPITAL|CLINICA|LABORATORIO|DENTISTA/,
+    /DROGA|DROGASIL|PANVEL|FARMACIA|PAGUE\s*MENOS|SMART\s*FIT|SMARTFIT|UNIMED|AMIL|HOSPITAL|CLINICA|LABORATORIO|DENTISTA/,
     "saude",
     0.91,
   ],
@@ -226,14 +230,56 @@ export function detectarDestino(
     cartao ?? /FATURA|CARTAO|CREDITO|CC[-_]/.test(strip(nomeArquivo));
   const candidatos = contas.filter(
     (c) =>
-      c.banco &&
-      c.banco.split(" ").some((w) => w.length > 2 && alvo.includes(strip(w))),
+      !!c.banco &&
+      (!!bancoDe(c.banco)?.re.test(alvo) ||
+        c.banco
+          .split(" ")
+          .some((w) => w.length > 2 && alvo.includes(strip(w)))),
   );
   if (!candidatos.length) return undefined;
   return (
     candidatos.find((c) => (c.tipo === "cartao") === querCartao) ??
     candidatos[0]
   );
+}
+
+/** Bancos reconhecíveis no nome do arquivo ou no conteúdo: padrão → nome e palavras-chave. */
+export const BANCOS: { re: RegExp; nome: string; banco: string }[] = [
+  { re: /NUBANK|NU PAGAMENTOS|NUPAY/, nome: "Nubank", banco: "nubank" },
+  { re: /\bITAU\b|ITAUCARD/, nome: "Itaú", banco: "itau itaú" },
+  { re: /\bINTER\b|BANCO INTER/, nome: "Inter", banco: "inter" },
+  { re: /\bC6\b|C6 BANK/, nome: "C6 Bank", banco: "c6" },
+  { re: /BRADESCO/, nome: "Bradesco", banco: "bradesco" },
+  { re: /SANTANDER/, nome: "Santander", banco: "santander" },
+  {
+    re: /BANCO DO BRASIL|\bBB\b/,
+    nome: "Banco do Brasil",
+    banco: "banco do brasil",
+  },
+  { re: /CAIXA ECONOMICA|\bCAIXA\b/, nome: "Caixa", banco: "caixa" },
+];
+
+/** Banco da lista que corresponde às palavras-chave salvas na conta. */
+export const bancoDe = (banco?: string) =>
+  banco ? BANCOS.find((b) => b.re.test(strip(banco))) : undefined;
+
+/** Conta a criar quando o arquivo é de um banco que o usuário ainda não cadastrou. */
+export function sugerirConta(
+  nomeArquivo: string,
+  conteudo: string,
+  cartao?: boolean,
+): Omit<Conta, "id"> | undefined {
+  const nome = strip(nomeArquivo);
+  const alvo = `${nome} ${strip(conteudo.slice(0, 4000))}`;
+  const achado = BANCOS.find((b) => b.re.test(alvo));
+  if (!achado) return undefined;
+  const ehCartao = cartao ?? /FATURA|CARTAO|CREDITO|CC[-_]/.test(nome);
+  return {
+    nome: achado.nome,
+    tipo: ehCartao ? "cartao" : "conta",
+    banco: achado.banco,
+    sub: ehCartao ? "Cartão de crédito" : "Conta corrente",
+  };
 }
 
 /** Faturas exportadas como CSV genérico costumam listar compras como positivas. */

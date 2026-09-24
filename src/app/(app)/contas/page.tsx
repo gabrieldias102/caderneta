@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Upload } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+import { Pencil, Plus, Upload } from "lucide-react";
+import { Button, IconButton, buttonVariants } from "@/components/ui/button";
 import { ColumnChart } from "@/components/ui/column-chart";
 import {
   AutoGrid,
   BigNumber,
   Card,
+  EmptyState,
   PageHeader,
   SectionHeader,
 } from "@/components/ui/layout";
@@ -19,12 +21,14 @@ import { diasAte, parcelasAtivas, periodo } from "@/lib/derive";
 import { addMonths, brl, brl0, fmtD, monLabel } from "@/lib/format";
 import { useApp } from "@/lib/store";
 import type { Conta } from "@/lib/types";
+import { ContaDialog, type ContaEmEdicao } from "./_components/conta-dialog";
 
 export default function Contas() {
   const { data, hoje } = useApp();
   const contas = data.contas.filter((c) => c.tipo === "conta");
   const cartoes = data.contas.filter((c) => c.tipo === "cartao");
   const total = contas.reduce((a, c) => a + (c.saldo ?? 0), 0);
+  const [edicao, setEdicao] = useState<ContaEmEdicao | null>(null);
 
   return (
     <>
@@ -33,12 +37,25 @@ export default function Contas() {
         title="Contas e cartões"
       />
 
-      <h5 className="mb-2.5">Contas</h5>
+      <Grupo
+        titulo="Contas"
+        acao="Nova conta"
+        onNovo={() => setEdicao({ tipo: "conta" })}
+      />
+      {contas.length === 0 && <EmptyState>Nenhuma conta ainda.</EmptyState>}
       <AutoGrid min={220} className="mb-8">
         {contas.map((c) => (
           <Card key={c.id} className="grid gap-1 p-4.5">
-            <div className="font-semibold">{c.nome}</div>
-            <div className="text-xs text-neutral-700">{c.sub}</div>
+            <div className="flex items-start gap-2">
+              <div className="mr-auto min-w-0">
+                <div className="font-semibold">{c.nome}</div>
+                <div className="text-xs text-neutral-700">{c.sub}</div>
+              </div>
+              <Editar
+                c={c}
+                onClick={() => setEdicao({ tipo: c.tipo, conta: c })}
+              />
+            </div>
             <BigNumber className="mt-2">{brl(c.saldo ?? 0)}</BigNumber>
             <div className="text-xs text-neutral-700">
               {c.ultimoExtrato?.startsWith("Atualizado")
@@ -49,19 +66,73 @@ export default function Contas() {
         ))}
       </AutoGrid>
 
-      <h5 className="mb-2.5">Cartões de crédito</h5>
+      <Grupo
+        titulo="Cartões de crédito"
+        acao="Novo cartão"
+        onNovo={() => setEdicao({ tipo: "cartao" })}
+      />
+      {cartoes.length === 0 && <EmptyState>Nenhum cartão ainda.</EmptyState>}
       <AutoGrid min={280} className="mb-8">
         {cartoes.map((c) => (
-          <CartaoCard key={c.id} c={c} dias={diasAte(c, hoje)} />
+          <CartaoCard
+            key={c.id}
+            c={c}
+            dias={diasAte(c, hoje)}
+            onEditar={() => setEdicao({ tipo: "cartao", conta: c })}
+          />
         ))}
       </AutoGrid>
 
       <Parcelas />
+
+      {edicao && (
+        <ContaDialog edicao={edicao} onClose={() => setEdicao(null)} />
+      )}
     </>
   );
 }
 
-function CartaoCard({ c, dias }: { c: Conta; dias: number }) {
+function Grupo({
+  titulo,
+  acao,
+  onNovo,
+}: {
+  titulo: string;
+  acao: string;
+  onNovo: () => void;
+}) {
+  return (
+    <div className="mb-2.5 flex items-center gap-3">
+      <h5 className="mr-auto">{titulo}</h5>
+      <Button size="sm" onClick={onNovo}>
+        <Plus size={16} />
+        {acao}
+      </Button>
+    </div>
+  );
+}
+
+function Editar({ c, onClick }: { c: Conta; onClick: () => void }) {
+  return (
+    <IconButton
+      label={`Editar ${c.nome}`}
+      className="-mt-1.5 -mr-1.5"
+      onClick={onClick}
+    >
+      <Pencil size={16} />
+    </IconButton>
+  );
+}
+
+function CartaoCard({
+  c,
+  dias,
+  onEditar,
+}: {
+  c: Conta;
+  dias: number;
+  onEditar: () => void;
+}) {
   const { setImp, resetImp } = useApp();
   const fatura = c.faturaAtual ?? 0,
     limite = c.limite ?? 0;
@@ -77,6 +148,7 @@ function CartaoCard({ c, dias }: { c: Conta; dias: number }) {
             Vence {fmtD(c.vencimento)}
           </Tag>
         )}
+        <Editar c={c} onClick={onEditar} />
       </div>
       <div>
         <div className="text-xs text-neutral-700">
