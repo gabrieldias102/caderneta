@@ -74,7 +74,7 @@ export function ProcessingStep() {
 
   const stNow = Math.min(3, Math.floor(imp.progress / 25));
   return (
-    <div className="grid max-w-[560px] gap-5">
+    <div className="grid max-w-140 gap-5">
       <div className="text-md text-neutral-700">
         {imp.file?.name} → {destino?.nome}
       </div>

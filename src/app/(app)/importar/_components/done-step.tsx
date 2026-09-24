@@ -17,7 +17,7 @@ export function DoneStep() {
     ["Ficaram sem categoria", r.pend],
   ];
   return (
-    <div className="grid max-w-[620px] gap-5">
+    <div className="grid max-w-155 gap-5">
       <IconBadge tone="accent" size="2xl">
         <Check size={30} strokeWidth={3} />
       </IconBadge>
