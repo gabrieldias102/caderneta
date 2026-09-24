@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeftRight, Plus, Search, Upload } from "lucide-react";
+import { ArrowLeftRight, PenLine, Plus, Search, Upload } from "lucide-react";
 import { TxRow } from "@/components/lancamentos/tx-row";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/controls";
@@ -39,7 +39,7 @@ export default function Lancamentos() {
   const rec = list
     .filter((t) => kindOf(t) === "income")
     .reduce((a, t) => a + t.valor, 0);
-  const openQA = () => setUI((u) => ({ ...u, qa: true }));
+  const openQA = (qa: "dinheiro" | "manual") => setUI((u) => ({ ...u, qa }));
 
   return (
     <>
@@ -47,14 +47,16 @@ export default function Lancamentos() {
         kicker={`${list.length} lançamento${list.length === 1 ? "" : "s"}`}
         title="Lançamentos"
       >
-        <Button
-          variant="primary"
-          className="hidden lg:inline-flex"
-          onClick={openQA}
-        >
-          <Plus size={18} />
-          Gasto em dinheiro
-        </Button>
+        <div className="hidden gap-2 lg:flex">
+          <Button onClick={() => openQA("manual")}>
+            <PenLine size={18} />
+            Novo lançamento
+          </Button>
+          <Button variant="primary" onClick={() => openQA("dinheiro")}>
+            <Plus size={18} />
+            Gasto em dinheiro
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="grid gap-2.5 border-b border-divider pb-4">
@@ -137,11 +139,15 @@ export default function Lancamentos() {
             Nenhum lançamento com esses filtros. Se for um mês ainda não
             importado, envie o extrato ou a fatura.
           </div>
-          <div>
+          <div className="flex flex-wrap gap-2">
             <Link href="/importar" className={buttonVariants()}>
               <Upload size={16} />
               Importar arquivo
             </Link>
+            <Button onClick={() => openQA("manual")}>
+              <PenLine size={16} />
+              Adicionar manualmente
+            </Button>
           </div>
         </div>
       )}
@@ -162,14 +168,23 @@ export default function Lancamentos() {
         </div>
       ))}
 
-      <Button
-        variant="primary"
-        onClick={openQA}
-        className="sticky bottom-19 z-5 mt-4 ml-auto flex h-13 w-max px-4.5 text-lg shadow-md lg:hidden"
-      >
-        <Plus size={18} />
-        Gasto em dinheiro
-      </Button>
+      <div className="sticky bottom-19 z-5 mt-4 flex justify-end gap-2 lg:hidden">
+        <Button
+          onClick={() => openQA("manual")}
+          className="h-13 px-4.5 text-lg shadow-md"
+        >
+          <PenLine size={18} />
+          Lançamento
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => openQA("dinheiro")}
+          className="h-13 px-4.5 text-lg shadow-md"
+        >
+          <Plus size={18} />
+          Dinheiro
+        </Button>
+      </div>
     </>
   );
 }

@@ -145,6 +145,17 @@ export function parseValorBR(raw: string): number {
   return neg ? -v : v;
 }
 
+const valorMaskFmt = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/** Máscara de digitação: os dígitos entram pelos centavos ("123456" → "1.234,56"). */
+export function maskValorBR(raw: string): string {
+  const digits = raw.replace(/\D/g, "").replace(/^0+/, "").slice(0, 11);
+  return digits ? valorMaskFmt.format(Number(digits) / 100) : "";
+}
+
 export const initials = (s: string) =>
   s
     .replace(/[^\p{L}\s]/gu, "")

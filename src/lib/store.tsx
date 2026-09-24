@@ -67,7 +67,8 @@ const OCULTOS_KEY = "caderneta:valores-ocultos";
 interface UI {
   toast: string | null;
   detail: string | null;
-  qa: boolean;
+  /** Diálogo de adição manual aberto: gasto em dinheiro ou lançamento de conta/cartão. */
+  qa: false | "dinheiro" | "manual";
   more: boolean;
   rule: RuleAsk | null;
 }

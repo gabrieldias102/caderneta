@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowRight, Upload, X } from "lucide-react";
+import { ArrowRight, PenLine, Upload, X } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/button";
 import { FormError } from "@/components/ui/form";
 import { IconBadge } from "@/components/ui/icon-badge";
@@ -29,7 +29,7 @@ const kb = (n: number) => `${Math.max(1, Math.round(n / 1024))} KB`;
 
 /** Etapa 1: escolher o arquivo e a conta de destino. */
 export function UploadStep() {
-  const { data, imp, setImp, flash } = useApp();
+  const { data, imp, setImp, setUI, flash } = useApp();
 
   const escolher = async (f: File | undefined, exemplo?: string) => {
     if (!f) return;
@@ -129,6 +129,17 @@ export function UploadStep() {
           <div className="text-xs text-neutral-700">
             O arquivo é lido e descartado. Nada é enviado ao banco e nada é
             lançado antes da sua revisão.
+          </div>
+          <div className="mt-2 grid gap-2 border-t border-divider pt-4">
+            <div className="text-md text-neutral-700">
+              Sem extrato? Lance uma compra no crédito ou no débito à mão.
+            </div>
+            <div>
+              <Button onClick={() => setUI((u) => ({ ...u, qa: "manual" }))}>
+                <PenLine size={16} />
+                Adicionar manualmente
+              </Button>
+            </div>
           </div>
         </div>
       </AutoGrid>
