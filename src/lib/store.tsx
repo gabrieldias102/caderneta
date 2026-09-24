@@ -12,7 +12,7 @@ import {
 } from "react";
 import { chave } from "./import/normalize";
 import { catNome, contaNome } from "./derive";
-import { fmtD, toISO } from "./format";
+import { fmtD, setValoresOcultos, toISO } from "./format";
 import { diffState, mergePayload, type SyncPayload } from "./sync";
 import type { DataState, ItemRevisao, Lancamento, Prefs } from "./types";
 
@@ -62,6 +62,8 @@ export interface RuleAsk {
   others: number;
 }
 
+const OCULTOS_KEY = "caderneta:valores-ocultos";
+
 interface UI {
   toast: string | null;
   detail: string | null;
@@ -87,6 +89,22 @@ function useStore() {
     per: "mes" as "mes" | "7d" | "ant",
   });
   const hoje = useMemo(() => toISO(new Date()), []);
+
+  // Valores ocultos: preferência deste aparelho, não vai para o servidor.
+  const [ocultos, setOcultos] = useState(false);
+  setValoresOcultos(ocultos);
+  useEffect(() => {
+    try {
+      setOcultos(localStorage.getItem(OCULTOS_KEY) === "1");
+    } catch {}
+  }, []);
+  const alternarValores = useCallback(() => {
+    const v = !ocultos;
+    setOcultos(v);
+    try {
+      localStorage.setItem(OCULTOS_KEY, v ? "1" : "0");
+    } catch {}
+  }, [ocultos]);
   const tt = useRef<ReturnType<typeof setTimeout>>(undefined);
   const flashRef = useRef<(msg: string) => void>(undefined);
 
@@ -408,6 +426,8 @@ function useStore() {
     ruleYes,
     confirmImport,
     setPrefs,
+    ocultos,
+    alternarValores,
     carga,
     recarregar: carregar,
     sync,

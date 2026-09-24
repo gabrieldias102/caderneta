@@ -12,9 +12,18 @@ const brl0Fmt = new Intl.NumberFormat("pt-BR", {
   minimumFractionDigits: 0,
 });
 
+/** Com os valores ocultos, os formatadores devolvem uma máscara no lugar do número. */
+let ocultos = false;
+const MASCARA = "R$" + NBSP + "••••";
+/** Chamado pelo store a cada render, antes de a árvore usar os formatadores. */
+export const setValoresOcultos = (v: boolean) => {
+  ocultos = v;
+};
+
 /** R$ 1.234,56 (sem sinal). */
-export const brl = (v: number) => brlFmt.format(Math.abs(v) < 0.005 ? 0 : v);
-export const brl0 = (v: number) => brl0Fmt.format(v);
+export const brl = (v: number) =>
+  ocultos ? MASCARA : brlFmt.format(Math.abs(v) < 0.005 ? 0 : v);
+export const brl0 = (v: number) => (ocultos ? MASCARA : brl0Fmt.format(v));
 /** "− R$ 58,90" / "+ R$ 85,00", com espaço não separável. */
 export const sgn = (v: number) => (v < 0 ? "−" : "+") + NBSP + brl(Math.abs(v));
 

@@ -9,6 +9,7 @@ import { useApp } from "@/lib/store";
 import { Logo } from "./logo";
 import { NAV, NAV_MORE, NAV_TABS, isActive } from "./nav";
 import { SyncBadge } from "./sync-badge";
+import { ValoresToggle } from "./valores-toggle";
 
 const mesDe = (hoje: string) => {
   const ym = monthOf(hoje);
@@ -22,11 +23,14 @@ export function Sidebar() {
   const mes = mesDe(hoje);
   return (
     <aside className="sticky top-0 hidden h-dvh w-62 flex-none flex-col border-r border-divider bg-card lg:flex">
-      <div className="border-b border-divider px-5 pt-5 pb-4.5">
-        <Logo className="text-[22px]" />
-        <div className="text-xs text-neutral-700">
-          {mes.nome} {mes.ano}
+      <div className="flex items-start gap-2 border-b border-divider pt-5 pr-3 pb-4.5 pl-5">
+        <div className="mr-auto">
+          <Logo className="text-[22px]" />
+          <div className="text-xs text-neutral-700">
+            {mes.nome} {mes.ano}
+          </div>
         </div>
+        <ValoresToggle />
       </div>
       <nav className="flex flex-1 flex-col overflow-auto py-2">
         {NAV.map(({ href, label, Icon }) => {
@@ -62,6 +66,7 @@ export function Topbar() {
     <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-divider bg-canvas px-4 py-3 lg:hidden">
       <Logo className="mr-auto" />
       <SyncBadge compact />
+      <ValoresToggle className="-my-1.5" />
       <span className="rounded-xl bg-neutral-100 px-2.5 py-0.75 text-2xs text-neutral-800">
         {mes.nome.slice(0, 3)} {mes.ano}
       </span>

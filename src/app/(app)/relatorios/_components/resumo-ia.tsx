@@ -16,7 +16,7 @@ export function ResumoIA({
   atual: TotaisMes;
   anterior: TotaisMes;
 }) {
-  const { data, hoje, set, flash } = useApp();
+  const { data, hoje, set, flash, ocultos } = useApp();
   const [loading, setLoading] = useState(false);
   const { ym, diasRestantes } = periodo(hoje);
   const nomeMes = MES[Number(ym.slice(5)) - 1];
@@ -100,7 +100,9 @@ export function ResumoIA({
         className="max-w-[760px] text-[19px] leading-normal text-pretty"
         aria-live="polite"
       >
-        {resumo}
+        {ocultos
+          ? "Valores ocultos — toque no olho no topo para ver o resumo."
+          : resumo}
       </p>
       <div className="text-2xs text-neutral-700">
         Gerado a partir dos seus lançamentos. Pode conter imprecisões — os
