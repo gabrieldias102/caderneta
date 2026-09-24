@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { chave } from "./import/normalize";
 import { catNome, contaNome } from "./derive";
 import { fmtD, toISO } from "./format";
@@ -12,7 +21,13 @@ export type SyncStatus = "salvo" | "salvando" | "offline";
 export type ImpStep = "upload" | "processing" | "review" | "done";
 export interface ImpState {
   step: ImpStep;
-  file: { name: string; size: string; hint: string; obj?: File; exemplo?: string } | null;
+  file: {
+    name: string;
+    size: string;
+    hint: string;
+    obj?: File;
+    exemplo?: string;
+  } | null;
   dest: string | null;
   progress: number;
   rows: ItemRevisao[];
@@ -20,9 +35,25 @@ export interface ImpState {
   sel: string[];
   newRules: number;
   error?: string;
-  result?: { n: number; ign: number; inst: number; rules: number; pend: number; dest: string };
+  result?: {
+    n: number;
+    ign: number;
+    inst: number;
+    rules: number;
+    pend: number;
+    dest: string;
+  };
 }
-const IMP0: ImpState = { step: "upload", file: null, dest: null, progress: 0, rows: [], filter: "todos", sel: [], newRules: 0 };
+const IMP0: ImpState = {
+  step: "upload",
+  file: null,
+  dest: null,
+  progress: 0,
+  rows: [],
+  filter: "todos",
+  sel: [],
+  newRules: 0,
+};
 
 export interface RuleAsk {
   estabelecimento: string;
@@ -41,14 +72,27 @@ interface UI {
 
 function useStore() {
   const [data, setData] = useState<DataState | null>(null);
-  const [ui, setUI] = useState<UI>({ toast: null, detail: null, qa: false, more: false, rule: null });
+  const [ui, setUI] = useState<UI>({
+    toast: null,
+    detail: null,
+    qa: false,
+    more: false,
+    rule: null,
+  });
   const [imp, setImpState] = useState<ImpState>(IMP0);
-  const [lancFilters, setLancFilters] = useState({ q: "", acc: "all", cat: "all", per: "mes" as "mes" | "7d" | "ant" });
+  const [lancFilters, setLancFilters] = useState({
+    q: "",
+    acc: "all",
+    cat: "all",
+    per: "mes" as "mes" | "7d" | "ant",
+  });
   const hoje = useMemo(() => toISO(new Date()), []);
   const tt = useRef<ReturnType<typeof setTimeout>>(undefined);
   const flashRef = useRef<(msg: string) => void>(undefined);
 
-  const [carga, setCarga] = useState<"carregando" | "ok" | "erro">("carregando");
+  const [carga, setCarga] = useState<"carregando" | "ok" | "erro">(
+    "carregando",
+  );
   const [sync, setSync] = useState<SyncStatus>("salvo");
   /** Último estado já enviado (ou na fila) para o servidor. */
   const base = useRef<DataState | null>(null);
@@ -78,7 +122,9 @@ function useStore() {
     }
   }, [sairParaLogin]);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
 
   const flush = useCallback(async () => {
     clearTimeout(timer.current);
@@ -88,13 +134,19 @@ function useStore() {
     enviando.current = true;
     setSync("salvando");
     try {
-      const res = await fetch("/api/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(lote) });
+      const res = await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(lote),
+      });
       if (res.status === 401) return sairParaLogin();
       if (res.status === 400) {
         // Dado rejeitado pela validação: não adianta repetir. Recarrega do servidor.
         const j = await res.json().catch(() => ({}));
         console.error("sync rejeitado", j);
-        flashRef.current?.("Não foi possível salvar uma alteração — recarregando");
+        flashRef.current?.(
+          "Não foi possível salvar uma alteração — recarregando",
+        );
         enviando.current = false;
         return carregar();
       }
@@ -102,11 +154,19 @@ function useStore() {
       tentativa.current = 0;
       setSync(pendente.current ? "salvando" : "salvo");
     } catch {
-      pendente.current = pendente.current ? mergePayload(lote, pendente.current) : lote;
-      if (tentativa.current === 0) flashRef.current?.("Sem conexão — suas alterações serão salvas quando voltar");
+      pendente.current = pendente.current
+        ? mergePayload(lote, pendente.current)
+        : lote;
+      if (tentativa.current === 0)
+        flashRef.current?.(
+          "Sem conexão — suas alterações serão salvas quando voltar",
+        );
       tentativa.current++;
       setSync("offline");
-      timer.current = setTimeout(() => flush(), Math.min(30_000, 1000 * 2 ** tentativa.current));
+      timer.current = setTimeout(
+        () => flush(),
+        Math.min(30_000, 1000 * 2 ** tentativa.current),
+      );
     } finally {
       enviando.current = false;
     }
@@ -119,7 +179,9 @@ function useStore() {
     const diff = diffState(base.current, data);
     base.current = data;
     if (!diff) return;
-    pendente.current = pendente.current ? mergePayload(pendente.current, diff) : diff;
+    pendente.current = pendente.current
+      ? mergePayload(pendente.current, diff)
+      : diff;
     setSync("salvando");
     if (tentativa.current === 0) {
       clearTimeout(timer.current);
@@ -130,12 +192,24 @@ function useStore() {
   // Ao fechar a aba, tenta mandar o que ficou pendente.
   useEffect(() => {
     const onHide = () => {
-      if (pendente.current) navigator.sendBeacon("/api/sync", new Blob([JSON.stringify(pendente.current)], { type: "application/json" }));
+      if (pendente.current)
+        navigator.sendBeacon(
+          "/api/sync",
+          new Blob([JSON.stringify(pendente.current)], {
+            type: "application/json",
+          }),
+        );
     };
-    const onOnline = () => { tentativa.current = 0; flush(); };
+    const onOnline = () => {
+      tentativa.current = 0;
+      flush();
+    };
     window.addEventListener("pagehide", onHide);
     window.addEventListener("online", onOnline);
-    return () => { window.removeEventListener("pagehide", onHide); window.removeEventListener("online", onOnline); };
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      window.removeEventListener("online", onOnline);
+    };
   }, [flush]);
 
   // Tema
@@ -147,7 +221,10 @@ function useStore() {
     else delete el.dataset.theme;
   }, [data?.prefs.tema]);
 
-  const set = useCallback((fn: (s: DataState) => DataState) => setData((s) => (s ? fn(s) : s)), []);
+  const set = useCallback(
+    (fn: (s: DataState) => DataState) => setData((s) => (s ? fn(s) : s)),
+    [],
+  );
 
   const flash = useCallback((msg: string) => {
     clearTimeout(tt.current);
@@ -158,23 +235,64 @@ function useStore() {
 
   const setImp = useCallback(
     (patch: Partial<ImpState> | ((i: ImpState) => Partial<ImpState>)) =>
-      setImpState((i) => ({ ...i, ...(typeof patch === "function" ? patch(i) : patch) })),
+      setImpState((i) => ({
+        ...i,
+        ...(typeof patch === "function" ? patch(i) : patch),
+      })),
     [],
   );
 
-  const updTx = useCallback((id: string, patch: Partial<Lancamento>) =>
-    set((s) => ({ ...s, lancamentos: s.lancamentos.map((t) => (t.id === id ? { ...t, ...patch } : t)) })), [set]);
+  const updTx = useCallback(
+    (id: string, patch: Partial<Lancamento>) =>
+      set((s) => ({
+        ...s,
+        lancamentos: s.lancamentos.map((t) =>
+          t.id === id ? { ...t, ...patch } : t,
+        ),
+      })),
+    [set],
+  );
 
   /** Pergunta se vira regra — só quando ainda não existe uma igual. */
-  const askRule = useCallback((estabelecimento: string, categoriaId: string, from: "import" | "tx", excluir?: string) => {
-    if (!data || !estabelecimento || !categoriaId) return;
-    const k = chave(estabelecimento);
-    if (data.regras.some((r) => chave(r.estabelecimento) === k && r.categoriaId === categoriaId)) return;
-    const others = from === "import"
-      ? imp.rows.filter((r) => r.k !== excluir && !r.tipo && chave(r.estabelecimento) === k && !r.editado).length
-      : data.lancamentos.filter((t) => t.id !== excluir && !t.tipo && chave(t.estabelecimento) === k && t.categoriaId !== categoriaId).length;
-    setUI((u) => ({ ...u, rule: { estabelecimento, categoriaId, from, others } }));
-  }, [data, imp.rows]);
+  const askRule = useCallback(
+    (
+      estabelecimento: string,
+      categoriaId: string,
+      from: "import" | "tx",
+      excluir?: string,
+    ) => {
+      if (!data || !estabelecimento || !categoriaId) return;
+      const k = chave(estabelecimento);
+      if (
+        data.regras.some(
+          (r) =>
+            chave(r.estabelecimento) === k && r.categoriaId === categoriaId,
+        )
+      )
+        return;
+      const others =
+        from === "import"
+          ? imp.rows.filter(
+              (r) =>
+                r.k !== excluir &&
+                !r.tipo &&
+                chave(r.estabelecimento) === k &&
+                !r.editado,
+            ).length
+          : data.lancamentos.filter(
+              (t) =>
+                t.id !== excluir &&
+                !t.tipo &&
+                chave(t.estabelecimento) === k &&
+                t.categoriaId !== categoriaId,
+            ).length;
+      setUI((u) => ({
+        ...u,
+        rule: { estabelecimento, categoriaId, from, others },
+      }));
+    },
+    [data, imp.rows],
+  );
 
   const ruleYes = useCallback(() => {
     const r = ui.rule;
@@ -184,18 +302,36 @@ function useStore() {
       ...s,
       regras: [
         ...s.regras.filter((x) => chave(x.estabelecimento) !== k),
-        { id: `r${Date.now()}`, estabelecimento: r.estabelecimento, categoriaId: r.categoriaId, origem: `Criada em ${fmtD(hoje)} ao ${r.from === "import" ? "revisar importação" : "editar lançamento"}` },
+        {
+          id: `r${Date.now()}`,
+          estabelecimento: r.estabelecimento,
+          categoriaId: r.categoriaId,
+          origem: `Criada em ${fmtD(hoje)} ao ${r.from === "import" ? "revisar importação" : "editar lançamento"}`,
+        },
       ],
-      lancamentos: r.from === "tx" ? s.lancamentos.map((t) => (!t.tipo && chave(t.estabelecimento) === k ? { ...t, categoriaId: r.categoriaId } : t)) : s.lancamentos,
+      lancamentos:
+        r.from === "tx"
+          ? s.lancamentos.map((t) =>
+              !t.tipo && chave(t.estabelecimento) === k
+                ? { ...t, categoriaId: r.categoriaId }
+                : t,
+            )
+          : s.lancamentos,
     }));
     if (r.from === "import") {
       setImp((i) => ({
         newRules: i.newRules + 1,
-        rows: i.rows.map((x) => (chave(x.estabelecimento) === k && !x.tipo ? { ...x, categoriaId: r.categoriaId, editado: true } : x)),
+        rows: i.rows.map((x) =>
+          chave(x.estabelecimento) === k && !x.tipo
+            ? { ...x, categoriaId: r.categoriaId, editado: true }
+            : x,
+        ),
       }));
     }
     setUI((u) => ({ ...u, rule: null }));
-    flash(`Regra criada: ${r.estabelecimento} → ${catNome(data, r.categoriaId)}`);
+    flash(
+      `Regra criada: ${r.estabelecimento} → ${catNome(data, r.categoriaId)}`,
+    );
   }, [ui.rule, data, set, setImp, flash, hoje]);
 
   const confirmImport = useCallback(() => {
@@ -206,7 +342,12 @@ function useStore() {
       id: `${impId}-${r.k}`,
       data: r.data,
       descricaoOriginal: r.descricaoOriginal,
-      descricao: r.tipo === "fatura" ? "Pagamento da fatura" : r.pix ? `Pix ${r.valor < 0 ? "enviado" : "recebido"} · ${r.estabelecimento}` : r.estabelecimento,
+      descricao:
+        r.tipo === "fatura"
+          ? "Pagamento da fatura"
+          : r.pix
+            ? `Pix ${r.valor < 0 ? "enviado" : "recebido"} · ${r.estabelecimento}`
+            : r.estabelecimento,
       estabelecimento: r.tipo ? "" : r.estabelecimento,
       valor: r.valor,
       contaId: imp.dest!,
@@ -220,7 +361,17 @@ function useStore() {
     set((s) => ({
       ...s,
       lancamentos: [...novos, ...s.lancamentos],
-      importacoes: [{ id: impId, arquivo: imp.file!.name, contaId: imp.dest!, data: hoje, total: inc.length, ignorados: imp.rows.length - inc.length }, ...s.importacoes],
+      importacoes: [
+        {
+          id: impId,
+          arquivo: imp.file!.name,
+          contaId: imp.dest!,
+          data: hoje,
+          total: inc.length,
+          ignorados: imp.rows.length - inc.length,
+        },
+        ...s.importacoes,
+      ],
     }));
     setImp({
       step: "done",
@@ -235,12 +386,31 @@ function useStore() {
     });
   }, [data, imp, set, setImp, hoje]);
 
-  const setPrefs = useCallback((p: Partial<Prefs>) => set((s) => ({ ...s, prefs: { ...s.prefs, ...p } })), [set]);
+  const setPrefs = useCallback(
+    (p: Partial<Prefs>) => set((s) => ({ ...s, prefs: { ...s.prefs, ...p } })),
+    [set],
+  );
 
   return {
-    data, hoje, ui, setUI, imp, setImp, resetImp: () => setImpState(IMP0), lancFilters, setLancFilters,
-    set, flash, updTx, askRule, ruleYes, confirmImport, setPrefs,
-    carga, recarregar: carregar, sync,
+    data,
+    hoje,
+    ui,
+    setUI,
+    imp,
+    setImp,
+    resetImp: () => setImpState(IMP0),
+    lancFilters,
+    setLancFilters,
+    set,
+    flash,
+    updTx,
+    askRule,
+    ruleYes,
+    confirmImport,
+    setPrefs,
+    carga,
+    recarregar: carregar,
+    sync,
     /** Substitui tudo pelos dados de exemplo (no servidor). */
     resetDemo: async () => {
       await flush();
@@ -263,10 +433,17 @@ function useStore() {
     },
     /** Exclui a conta no servidor. Devolve a mensagem de erro, ou null se deu certo. */
     excluirConta: async (senha: string): Promise<string | null> => {
-      const res = await fetch("/api/conta/excluir", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ senha }) })
-        .catch(() => null);
+      const res = await fetch("/api/conta/excluir", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ senha }),
+      }).catch(() => null);
       if (!res) return "Sem conexão — tente de novo";
-      if (!res.ok) return (await res.json().catch(() => ({}))).erro ?? "Não foi possível excluir agora";
+      if (!res.ok)
+        return (
+          (await res.json().catch(() => ({}))).erro ??
+          "Não foi possível excluir agora"
+        );
       clearTimeout(timer.current);
       pendente.current = null;
       window.location.href = "/entrar";
@@ -278,22 +455,19 @@ function useStore() {
 export type Store = ReturnType<typeof useStore> & { data: DataState };
 const Ctx = createContext<Store | null>(null);
 
-export function StoreProvider({ children }: { children: ReactNode }) {
+/** Enquanto os dados não chegam, mostra `loading`; se a carga falhar, `error` (com a ação de tentar de novo). */
+export function StoreProvider({
+  loading,
+  error,
+  children,
+}: {
+  loading: ReactNode;
+  error: (retry: () => void) => ReactNode;
+  children: ReactNode;
+}) {
   const store = useStore();
-  if (store.carga === "erro") {
-    return (
-      <div style={{ minHeight: "100dvh", display: "grid", placeItems: "center", padding: 16 }}>
-        <div style={{ display: "grid", gap: 12, maxWidth: 360, textAlign: "center", justifyItems: "center" }}>
-          <h4 style={{ margin: 0 }}>Não foi possível carregar seus dados</h4>
-          <div className="muted" style={{ fontSize: 14 }}>Verifique a conexão e tente de novo.</div>
-          <button className="btn btn-primary" onClick={store.recarregar}>Tentar de novo</button>
-        </div>
-      </div>
-    );
-  }
-  if (!store.data) {
-    return <div style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }} className="muted" aria-busy="true">Carregando…</div>;
-  }
+  if (store.carga === "erro") return error(store.recarregar);
+  if (!store.data) return loading;
   return <Ctx.Provider value={store as Store}>{children}</Ctx.Provider>;
 }
 

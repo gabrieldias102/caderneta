@@ -5,7 +5,10 @@ import { autenticado } from "@/server/http";
 /** Todos os dados do usuário num arquivo JSON (portabilidade — LGPD art. 18). */
 export const GET = autenticado(async (_req, user) => {
   const agora = new Date();
-  const dados = { exportadoEm: agora.toISOString(), ...(await carregarEstado(user)) };
+  const dados = {
+    exportadoEm: agora.toISOString(),
+    ...(await carregarEstado(user)),
+  };
   return NextResponse.json(dados, {
     headers: {
       "Cache-Control": "no-store",

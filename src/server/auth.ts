@@ -1,12 +1,22 @@
 import "server-only";
-import { createHash, randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
+import {
+  createHash,
+  randomBytes,
+  scrypt as scryptCb,
+  timingSafeEqual,
+} from "node:crypto";
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
 import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { sessions, tentativas, users } from "@/db/schema";
 
-const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number, opts: { N: number; r: number; p: number; maxmem: number }) => Promise<Buffer>;
+const scrypt = promisify(scryptCb) as (
+  pw: string,
+  salt: Buffer,
+  len: number,
+  opts: { N: number; r: number; p: number; maxmem: number },
+) => Promise<Buffer>;
 
 export const SESSION_COOKIE = "cad_session";
 const SESSION_DAYS = 30;
@@ -21,19 +31,31 @@ export async function hashPassword(senha: string): Promise<string> {
   return `scrypt$${KDF.N}$${KDF.r}$${KDF.p}$${salt.toString("base64url")}$${hash.toString("base64url")}`;
 }
 
-export async function verifyPassword(senha: string, stored: string): Promise<boolean> {
+export async function verifyPassword(
+  senha: string,
+  stored: string,
+): Promise<boolean> {
   const [alg, n, r, p, saltB64, hashB64] = stored.split("$");
   if (alg !== "scrypt" || !hashB64) return false;
   const expected = Buffer.from(hashB64, "base64url");
-  const got = await scrypt(senha.normalize("NFKC"), Buffer.from(saltB64, "base64url"), expected.length, {
-    N: Number(n), r: Number(r), p: Number(p), maxmem: KDF.maxmem,
-  });
+  const got = await scrypt(
+    senha.normalize("NFKC"),
+    Buffer.from(saltB64, "base64url"),
+    expected.length,
+    {
+      N: Number(n),
+      r: Number(r),
+      p: Number(p),
+      maxmem: KDF.maxmem,
+    },
+  );
   return got.length === expected.length && timingSafeEqual(got, expected);
 }
 
 /** Hash fixo para comparar quando o e-mail não existe (tempo de resposta igual). */
 let dummyHash: Promise<string> | undefined;
-export const getDummyHash = () => (dummyHash ??= hashPassword("senha-que-ninguem-usa"));
+export const getDummyHash = () =>
+  (dummyHash ??= hashPassword("senha-que-ninguem-usa"));
 
 /* ── Sessões ─────────────────────────────────────────────────────────────── */
 
@@ -45,7 +67,11 @@ export async function createSession(userId: string) {
   await db.insert(sessions).values({ id: sha256(token), userId, expiresAt });
   await setSessionCookie(token, expiresAt);
   // Limpeza oportunista de sessões vencidas deste usuário.
-  await db.delete(sessions).where(and(eq(sessions.userId, userId), lt(sessions.expiresAt, new Date())));
+  await db
+    .delete(sessions)
+    .where(
+      and(eq(sessions.userId, userId), lt(sessions.expiresAt, new Date())),
+    );
 }
 
 async function setSessionCookie(token: string, expiresAt: Date) {
@@ -58,7 +84,11 @@ async function setSessionCookie(token: string, expiresAt: Date) {
   });
 }
 
-export interface SessionUser { id: string; email: string; nome: string }
+export interface SessionUser {
+  id: string;
+  email: string;
+  nome: string;
+}
 
 /** Usuário da sessão atual, ou null. Renova a sessão quando está perto de vencer. */
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -66,7 +96,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   if (!token) return null;
   const id = sha256(token);
   const [row] = await db
-    .select({ id: users.id, email: users.email, nome: users.nome, expiresAt: sessions.expiresAt })
+    .select({
+      id: users.id,
+      email: users.email,
+      nome: users.nome,
+      expiresAt: sessions.expiresAt,
+    })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
     .where(and(eq(sessions.id, id), gt(sessions.expiresAt, new Date())))
@@ -75,7 +110,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   if (row.expiresAt.getTime() - Date.now() < RENEW_BELOW_DAYS * 86400_000) {
     const expiresAt = new Date(Date.now() + SESSION_DAYS * 86400_000);
     await db.update(sessions).set({ expiresAt }).where(eq(sessions.id, id));
-    try { await setSessionCookie(token, expiresAt); } catch { /* em Server Components não dá para gravar cookie */ }
+    try {
+      await setSessionCookie(token, expiresAt);
+    } catch {
+      /* em Server Components não dá para gravar cookie */
+    }
   }
   return { id: row.id, email: row.email, nome: row.nome };
 }
@@ -90,9 +129,15 @@ export async function destroySession() {
 /* ── Limite de tentativas (Postgres, vale para todas as instâncias) ──────── */
 
 /** true se ainda pode tentar. Padrão: 10 tentativas por chave em 15 min. */
-export async function permitirTentativa(chave: string, max = 10, janelaMs = 15 * 60_000): Promise<boolean> {
+export async function permitirTentativa(
+  chave: string,
+  max = 10,
+  janelaMs = 15 * 60_000,
+): Promise<boolean> {
   const ate = new Date(Date.now() + janelaMs);
-  const [row] = await db.insert(tentativas).values({ chave, n: 1, ate })
+  const [row] = await db
+    .insert(tentativas)
+    .values({ chave, n: 1, ate })
     .onConflictDoUpdate({
       target: tentativas.chave,
       set: {
@@ -102,7 +147,8 @@ export async function permitirTentativa(chave: string, max = 10, janelaMs = 15 *
     })
     .returning({ n: tentativas.n });
   // Limpeza oportunista das janelas vencidas.
-  if (Math.random() < 0.02) await db.delete(tentativas).where(lt(tentativas.ate, new Date()));
+  if (Math.random() < 0.02)
+    await db.delete(tentativas).where(lt(tentativas.ate, new Date()));
   return row.n <= max;
 }
 

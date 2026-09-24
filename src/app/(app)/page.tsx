@@ -1,103 +1,216 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Upload } from "lucide-react";
-import { useAlertas } from "@/components/alertas";
-import { PageHead, TxRow } from "@/components/ui";
+import { TxRow } from "@/components/lancamentos/tx-row";
+import { buttonVariants } from "@/components/ui/button";
+import { IconBadge } from "@/components/ui/icon-badge";
+import {
+  AutoGrid,
+  Card,
+  EmptyState,
+  HeroNumber,
+  ListItem,
+  Overline,
+  PageHeader,
+  Section,
+  SectionHeader,
+} from "@/components/ui/layout";
+import { ProgressBar } from "@/components/ui/progress-bar";
+import { Tag } from "@/components/ui/tag";
+import { useAlertas } from "@/hooks/use-alertas";
 import { catNome, doMes, orcamentos, periodo, totais } from "@/lib/derive";
 import { DOW_LONG, MES, brl, parseISO, sgn } from "@/lib/format";
 import { useApp } from "@/lib/store";
 
 export default function Dashboard() {
   const { data, hoje } = useApp();
-  const router = useRouter();
-  const alertas = useAlertas();
   const { ym, diasRestantes } = periodo(hoje);
-  const txsMes = doMes(data, ym, hoje);
-  const { desp, rec, saldo, porCat } = totais(txsMes);
+  const { desp, rec, saldo, porCat } = totais(doMes(data, ym, hoje));
   const orc = orcamentos(data, porCat);
   const dt = parseISO(hoje);
-  const pctGasto = rec > 0 ? (desp / rec) * 100 : desp > 0 ? 100 : 0;
-  const cats = Object.entries(porCat).sort((a, b) => b[1] - a[1]).slice(0, 7);
-  const recent = data.lancamentos.filter((t) => t.data <= hoje).sort((a, b) => b.data.localeCompare(a.data)).slice(0, 5);
+  const recent = data.lancamentos
+    .filter((t) => t.data <= hoje)
+    .sort((a, b) => b.data.localeCompare(a.data))
+    .slice(0, 5);
 
   return (
     <>
-      <PageHead kicker={`${DOW_LONG[dt.getDay()]}, ${dt.getDate()} de ${MES[dt.getMonth()]}`} title={`Olá, ${data.nome}`}>
-        <button className="btn btn-primary" onClick={() => router.push("/importar")}><Upload size={16} />Importar extrato</button>
-      </PageHead>
+      <PageHeader
+        kicker={`${DOW_LONG[dt.getDay()]}, ${dt.getDate()} de ${MES[dt.getMonth()]}`}
+        title={`Olá, ${data.nome}`}
+      >
+        <Link
+          href="/importar"
+          className={buttonVariants({ variant: "primary" })}
+        >
+          <Upload size={16} />
+          Importar extrato
+        </Link>
+      </PageHeader>
 
-      <div className="grid-cards">
-        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div className="label-caps">Saldo do mês</div>
-          <div className="hero-num">{sgn(saldo)}</div>
-          <div style={{ fontSize: 13 }} className="muted">Receitas menos despesas, até hoje. Transferências e faturas pagas ficam de fora.</div>
-        </div>
-        <div className="card" style={{ background: "var(--color-accent)", color: "var(--color-bg)", display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase" }}>Quanto ainda posso gastar</div>
-          <div className="hero-num">{brl(orc.livre)}</div>
-          <div style={{ fontSize: 13 }}>
-            {diasRestantes > 0
-              ? <>≈ {brl(orc.livre / diasRestantes)} por dia nos próximos {diasRestantes} dias, somando o que resta dos orçamentos.</>
-              : <>Último dia do mês — é o que resta somando os orçamentos.</>}
+      <AutoGrid>
+        <Card className="flex flex-col gap-1.5">
+          <Overline>Saldo do mês</Overline>
+          <HeroNumber>{sgn(saldo)}</HeroNumber>
+          <div className="text-sm text-neutral-700">
+            Receitas menos despesas, até hoje. Transferências e faturas pagas
+            ficam de fora.
           </div>
-        </div>
-        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div className="label-caps">Receitas × despesas</div>
-          <div style={{ display: "grid", gap: 4 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span>Receitas</span><strong className="num">{brl(rec)}</strong></div>
-            <div style={{ height: 10, borderRadius: 99, background: rec > 0 ? "var(--color-text)" : "var(--color-neutral-200)" }} />
+        </Card>
+        <Card className="flex flex-col gap-1.5 bg-accent text-canvas">
+          <Overline className="text-current">
+            Quanto ainda posso gastar
+          </Overline>
+          <HeroNumber>{brl(orc.livre)}</HeroNumber>
+          <div className="text-sm">
+            {diasRestantes > 0 ? (
+              <>
+                ≈ {brl(orc.livre / diasRestantes)} por dia nos próximos{" "}
+                {diasRestantes} dias, somando o que resta dos orçamentos.
+              </>
+            ) : (
+              <>Último dia do mês — é o que resta somando os orçamentos.</>
+            )}
           </div>
-          <div style={{ display: "grid", gap: 4 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span>Despesas</span><strong className="num">{brl(desp)}</strong></div>
-            <div style={{ height: 10, background: "var(--color-neutral-200)", borderRadius: 99 }}>
-              <div style={{ height: "100%", borderRadius: 99, width: `${Math.min(100, pctGasto)}%`, background: "var(--color-accent)" }} />
-            </div>
-          </div>
-          <div style={{ fontSize: 12 }} className="muted">
-            {rec > 0 ? `Você gastou ${Math.round(pctGasto)}% do que entrou.` : "Nenhuma receita registrada neste mês ainda."}
-          </div>
-        </div>
-      </div>
+        </Card>
+        <IncomeVsExpense rec={rec} desp={desp} />
+      </AutoGrid>
 
-      <div className="grid-cards" style={{ ["--min" as string]: "300px", gap: 24, marginTop: 24 }}>
-        <section className="section">
-          <div className="section-head"><h4>Gastos por categoria</h4><button className="btn btn-ghost" onClick={() => router.push("/orcamentos")}>Orçamentos</button></div>
-          {cats.length === 0 && <div className="muted" style={{ padding: "16px 0", fontSize: 14 }}>Sem despesas neste mês ainda.</div>}
-          {cats.map(([k, v]) => {
-            const l = data.orcamentos[k];
-            const hot = l && (v / l) * 100 >= data.prefs.thr;
-            return (
-              <div key={k} className="row" style={{ display: "grid", gridTemplateColumns: "110px minmax(0,1fr) auto", gap: 12, alignItems: "center", padding: "10px 0" }}>
-                <span className="ellipsis" style={{ fontSize: 14 }}>{catNome(data, k)}</span>
-                <div className="bar"><div className="fill" style={{ width: `${(v / cats[0][1]) * 100}%`, background: hot ? "var(--color-accent)" : "var(--color-text)" }} /></div>
-                <span className="num" style={{ fontSize: 14, fontWeight: 600, minWidth: 90, textAlign: "right" }}>{brl(v)}</span>
-              </div>
-            );
-          })}
-        </section>
-        <section className="section">
-          <div className="section-head"><h4>Alertas recentes</h4><span className="tag tag-accent">{alertas.length}</span></div>
-          {alertas.length === 0 && <div className="muted" style={{ padding: "16px 0", fontSize: 14 }}>Tudo tranquilo por aqui.</div>}
-          {alertas.map((a) => (
-            <div key={a.title} className="row" style={{ display: "grid", gridTemplateColumns: "28px minmax(0,1fr) auto", gap: 12, alignItems: "start", padding: "12px 0" }}>
-              <div style={{ width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: "var(--r-icon)", background: a.bg, color: a.fg }}>{a.icon}</div>
-              <div><div style={{ fontSize: 14, fontWeight: 600, textWrap: "pretty" }}>{a.title}</div><div style={{ fontSize: 12 }} className="muted">{a.sub}</div></div>
-              <button className="btn btn-ghost" onClick={a.go}>{a.cta}</button>
-            </div>
-          ))}
-        </section>
-      </div>
+      <AutoGrid min={300} className="mt-6 gap-6">
+        <CategoryBreakdown porCat={porCat} />
+        <AlertsPanel />
+      </AutoGrid>
 
-      <section className="section" style={{ marginTop: 24 }}>
-        <div className="section-head"><h4>Últimos lançamentos</h4><button className="btn btn-ghost" onClick={() => router.push("/lancamentos")}>Ver todos</button></div>
+      <Section className="mt-6">
+        <SectionHeader title="Últimos lançamentos">
+          <Link
+            href="/lancamentos"
+            className={buttonVariants({ variant: "ghost" })}
+          >
+            Ver todos
+          </Link>
+        </SectionHeader>
         {recent.length === 0 && (
-          <div className="muted" style={{ padding: "16px 0", fontSize: 14 }}>
-            Nada lançado ainda. Importe um extrato ou a fatura do cartão para começar.
-          </div>
+          <EmptyState>
+            Nada lançado ainda. Importe um extrato ou a fatura do cartão para
+            começar.
+          </EmptyState>
         )}
-        {recent.map((t) => <TxRow key={t.id} t={t} compact />)}
-      </section>
+        {recent.map((t) => (
+          <TxRow key={t.id} t={t} compact />
+        ))}
+      </Section>
     </>
+  );
+}
+
+function IncomeVsExpense({ rec, desp }: { rec: number; desp: number }) {
+  const pctGasto = rec > 0 ? (desp / rec) * 100 : desp > 0 ? 100 : 0;
+  return (
+    <Card className="flex flex-col gap-3">
+      <Overline>Receitas × despesas</Overline>
+      <div className="grid gap-1">
+        <div className="flex justify-between text-sm">
+          <span>Receitas</span>
+          <strong className="num">{brl(rec)}</strong>
+        </div>
+        <ProgressBar value={rec > 0 ? 100 : 0} className="h-2.5" />
+      </div>
+      <div className="grid gap-1">
+        <div className="flex justify-between text-sm">
+          <span>Despesas</span>
+          <strong className="num">{brl(desp)}</strong>
+        </div>
+        <ProgressBar
+          value={pctGasto}
+          className="h-2.5"
+          fillClassName="bg-accent"
+        />
+      </div>
+      <div className="text-xs text-neutral-700">
+        {rec > 0
+          ? `Você gastou ${Math.round(pctGasto)}% do que entrou.`
+          : "Nenhuma receita registrada neste mês ainda."}
+      </div>
+    </Card>
+  );
+}
+
+function CategoryBreakdown({ porCat }: { porCat: Record<string, number> }) {
+  const { data } = useApp();
+  const cats = Object.entries(porCat)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 7);
+  return (
+    <Section>
+      <SectionHeader title="Gastos por categoria">
+        <Link
+          href="/orcamentos"
+          className={buttonVariants({ variant: "ghost" })}
+        >
+          Orçamentos
+        </Link>
+      </SectionHeader>
+      {cats.length === 0 && (
+        <EmptyState>Sem despesas neste mês ainda.</EmptyState>
+      )}
+      {cats.map(([k, v]) => {
+        const limite = data.orcamentos[k];
+        const hot = limite && (v / limite) * 100 >= data.prefs.thr;
+        return (
+          <div
+            key={k}
+            className="grid grid-cols-[110px_minmax(0,1fr)_auto] items-center gap-3 border-b border-divider py-2.5"
+          >
+            <span className="truncate text-md">{catNome(data, k)}</span>
+            <ProgressBar
+              value={(v / cats[0][1]) * 100}
+              fillClassName={hot ? "bg-accent" : undefined}
+            />
+            <span className="min-w-22.5 text-right text-md font-semibold num">
+              {brl(v)}
+            </span>
+          </div>
+        );
+      })}
+    </Section>
+  );
+}
+
+function AlertsPanel() {
+  const alertas = useAlertas();
+  return (
+    <Section>
+      <SectionHeader title="Alertas recentes">
+        <Tag variant="accent">{alertas.length}</Tag>
+      </SectionHeader>
+      {alertas.length === 0 && (
+        <EmptyState>Tudo tranquilo por aqui.</EmptyState>
+      )}
+      {alertas.map((a) => (
+        <ListItem
+          key={a.title}
+          className="items-start"
+          truncate={false}
+          leading={
+            <IconBadge tone={a.tone} size="sm">
+              {a.icon}
+            </IconBadge>
+          }
+          title={a.title}
+          description={a.sub}
+          trailing={
+            <Link
+              href={a.href}
+              onClick={a.onSelect}
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              {a.cta}
+            </Link>
+          }
+        />
+      ))}
+    </Section>
   );
 }

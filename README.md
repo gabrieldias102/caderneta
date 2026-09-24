@@ -2,7 +2,7 @@
 
 Controle financeiro pessoal (pt-BR, R$), sem conexão com banco: você importa o extrato ou a fatura (PDF, OFX ou CSV), revisa as categorias sugeridas e confirma. Implementação do design em [`design_handoff_caderneta/`](design_handoff_caderneta/README.md).
 
-Next.js 16 (App Router) + React 19 + TypeScript, CSS puro com os tokens do tema "Acolhedor" (claro/escuro), ícones Lucide. Backend no próprio Next (route handlers) com Postgres + Drizzle e login por e-mail e senha.
+Next.js 16 (App Router) + React 19 + TypeScript, Tailwind CSS 4 com os tokens do tema "Acolhedor" (claro/escuro), ícones Lucide. Backend no próprio Next (route handlers) com Postgres + Drizzle e login por e-mail e senha.
 
 ## Rodar
 
@@ -15,6 +15,7 @@ npm run db:up                # Postgres 17 na porta 5433
 npm run db:migrate           # cria as tabelas
 npm run dev                  # http://localhost:3000 → crie uma conta em /cadastro
 npm test                     # parsers, importação e sincronização
+npm run format               # Prettier (ordena também as classes do Tailwind)
 npm run build
 ```
 
@@ -38,29 +39,33 @@ Deploy na Vercel com Postgres gerenciado (Neon): veja **[docs/DEPLOY.md](docs/DE
 - **Cabeçalhos**: CSP, `X-Frame-Options`, `nosniff`, `Referrer-Policy` e `Permissions-Policy` em todas as respostas (`next.config.ts`).
 - **Conta**: em Configurações › Conta é possível exportar tudo em JSON e excluir a conta (pede a senha; os dados são apagados em cascata).
 
-| Rota | O quê |
-|---|---|
-| `POST /api/auth/cadastro` · `entrar` · `sair` | Conta e sessão |
-| `GET /api/estado` | Todos os dados do usuário |
-| `POST /api/sync` | Lote de alterações (upserts e exclusões por coleção) |
-| `GET /api/conta/exportar` · `POST /api/conta/excluir` | Exportar os dados (JSON) e excluir a conta |
-| `POST /api/exemplo` | Substitui os dados pelos de exemplo |
-| `POST /api/resumo` | Resumo do mês com Claude (só agregados; 20 por usuário por dia) |
+| Rota                                                  | O quê                                                           |
+| ----------------------------------------------------- | --------------------------------------------------------------- |
+| `POST /api/auth/cadastro` · `entrar` · `sair`         | Conta e sessão                                                  |
+| `GET /api/estado`                                     | Todos os dados do usuário                                       |
+| `POST /api/sync`                                      | Lote de alterações (upserts e exclusões por coleção)            |
+| `GET /api/conta/exportar` · `POST /api/conta/excluir` | Exportar os dados (JSON) e excluir a conta                      |
+| `POST /api/exemplo`                                   | Substitui os dados pelos de exemplo                             |
+| `POST /api/resumo`                                    | Resumo do mês com Claude (só agregados; 20 por usuário por dia) |
 
 ## Como está organizado
 
-| Caminho | O quê |
-|---|---|
-| `src/app/(app)/*/page.tsx` · `src/app/(auth)/` | As 8 telas (Início, Lançamentos, Importar, Orçamentos, Relatórios, Contas, Compartilhadas, Configurações) e as de entrar/criar conta |
-| `src/components/` | Shell (sidebar ≥ 960px, barra inferior no celular), diálogos (detalhe, gasto em dinheiro, regra) e a linha de lançamento |
-| `src/lib/store.tsx` | Estado do app no cliente + fila de sincronização com o servidor |
-| `src/db/` · `drizzle/` | Schema do Postgres e migrações |
-| `docs/DEPLOY.md` · `vercel.json` | Deploy na Vercel |
-| `src/server/` | Autenticação, validação (Zod) e acesso a dados |
-| `src/lib/derive.ts` | Regras de negócio: despesas ignoram neutros, saldo, "quanto posso gastar", orçamentos, parcelas |
-| `src/lib/import/` | Parsers OFX/CSV/PDF, normalização de estabelecimento, detecção de Pix PF, parcelas, fatura e transferência própria, categorização (regras → histórico → palavras-chave) e duplicatas |
-| `src/app/api/resumo/route.ts` | Resumo do mês com Claude — recebe só agregados, nunca lançamentos |
-| `public/exemplos/` | Arquivos de exemplo usados pelos botões "Teste com um exemplo" |
+| Caminho                                        | O quê                                                                                                                                                                                                                |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/(app)/*/page.tsx` · `src/app/(auth)/` | As 8 telas (Início, Lançamentos, Importar, Orçamentos, Relatórios, Contas, Compartilhadas, Configurações) e as de entrar/criar conta                                                                                 |
+| `src/app/globals.css`                          | Tokens do tema em variáveis CSS (trocam no claro/escuro) expostos ao Tailwind via `@theme` — `bg-card`, `text-accent-700`, `text-md`… sem precisar de `dark:`                                                        |
+| `src/components/ui/`                           | Primitivos de interface (Button, Input/Select/Field, Card/Section, Tag, Segmented, Switch, ProgressBar, Dialog, Table, ColumnChart). Variantes com `cva`; `cn()` (`src/lib/cn.ts`) junta classes e resolve conflitos |
+| `src/components/layout/`                       | Shell: sidebar ≥ 960px, barra inferior e folha "Mais" no celular, indicador de sincronização                                                                                                                         |
+| `src/components/lancamentos/`                  | Linha de lançamento e os diálogos (detalhe, gasto em dinheiro, regra)                                                                                                                                                |
+| `src/app/(app)/*/_components/`                 | Partes de cada tela (etapas da importação, abas de configurações, gráficos de relatórios)                                                                                                                            |
+| `src/lib/store.tsx`                            | Estado do app no cliente + fila de sincronização com o servidor                                                                                                                                                      |
+| `src/db/` · `drizzle/`                         | Schema do Postgres e migrações                                                                                                                                                                                       |
+| `docs/DEPLOY.md` · `vercel.json`               | Deploy na Vercel                                                                                                                                                                                                     |
+| `src/server/`                                  | Autenticação, validação (Zod) e acesso a dados                                                                                                                                                                       |
+| `src/lib/derive.ts`                            | Regras de negócio: despesas ignoram neutros, saldo, "quanto posso gastar", orçamentos, parcelas                                                                                                                      |
+| `src/lib/import/`                              | Parsers OFX/CSV/PDF, normalização de estabelecimento, detecção de Pix PF, parcelas, fatura e transferência própria, categorização (regras → histórico → palavras-chave) e duplicatas                                 |
+| `src/app/api/resumo/route.ts`                  | Resumo do mês com Claude — recebe só agregados, nunca lançamentos                                                                                                                                                    |
+| `public/exemplos/`                             | Arquivos de exemplo usados pelos botões "Teste com um exemplo"                                                                                                                                                       |
 
 ## O que ainda é provisório
 

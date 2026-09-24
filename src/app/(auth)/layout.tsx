@@ -1,10 +1,18 @@
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+import { Logo } from "@/components/layout/logo";
+
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center", padding: 16 }}>
-      <div style={{ width: "min(420px, 100%)", display: "grid", gap: 20 }}>
+    <main className="grid min-h-dvh place-items-center p-4">
+      <div className="grid w-[min(420px,100%)] gap-5">
         <div>
-          <div className="logo" style={{ fontSize: 26 }}>Caderneta<i>.</i></div>
-          <div className="muted" style={{ fontSize: 13 }}>Sem conexão com o banco — tudo entra por arquivo ou à mão.</div>
+          <Logo className="text-[26px]" />
+          <div className="text-sm text-neutral-700">
+            Sem conexão com o banco — tudo entra por arquivo ou à mão.
+          </div>
         </div>
         {children}
       </div>

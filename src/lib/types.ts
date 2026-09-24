@@ -62,7 +62,8 @@ export interface Importacao {
   ignorados: number;
 }
 
-export type Confianca = "voce" | "regra" | "alta" | "media" | "baixa" | "nenhuma";
+export type Confianca =
+  "voce" | "regra" | "alta" | "media" | "baixa" | "nenhuma";
 
 export interface ItemRevisao {
   k: string;

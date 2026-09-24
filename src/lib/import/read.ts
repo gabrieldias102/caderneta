@@ -1,7 +1,13 @@
 "use client";
 
 import type { Conta } from "../types";
-import { parseCSV, parseOFX, parsePDFText, ParseError, type RawTx } from "./parsers";
+import {
+  parseCSV,
+  parseOFX,
+  parsePDFText,
+  ParseError,
+  type RawTx,
+} from "./parsers";
 import { detectarDestino } from "./pipeline";
 
 export const EXTENSOES = ["pdf", "ofx", "csv"] as const;
@@ -34,36 +40,81 @@ async function textoDoPDF(buf: ArrayBuffer): Promise<string[]> {
     }
     [...porY.entries()]
       .sort((a, b) => b[0] - a[0])
-      .forEach(([, parts]) => linhas.push(parts.sort((a, b) => a.x - b.x).map((p) => p.s).join(" ")));
+      .forEach(([, parts]) =>
+        linhas.push(
+          parts
+            .sort((a, b) => a.x - b.x)
+            .map((p) => p.s)
+            .join(" "),
+        ),
+      );
   }
   return linhas;
 }
 
 /** Lê o arquivo no navegador — nada é enviado a servidor algum. */
-export async function lerArquivo(file: File, contas: Conta[], contaEscolhida?: Conta): Promise<ArquivoLido> {
+export async function lerArquivo(
+  file: File,
+  contas: Conta[],
+  contaEscolhida?: Conta,
+): Promise<ArquivoLido> {
   const ext = extOf(file.name);
   const ano = new Date().getFullYear();
   if (ext === "ofx") {
     const text = await file.text();
     const r = parseOFX(text);
     const destino = detectarDestino(file.name, text, contas, r.cartao);
-    return { rows: r.rows, destino, hint: destino ? `Extrato ${destino.nome} detectado` : "OFX — escolha o destino" };
+    return {
+      rows: r.rows,
+      destino,
+      hint: destino
+        ? `Extrato ${destino.nome} detectado`
+        : "OFX — escolha o destino",
+    };
   }
   if (ext === "csv") {
     const text = await file.text();
     const r = parseCSV(text, ano);
-    const destino = detectarDestino(file.name, r.formato === "nubank-fatura" ? "nubank fatura" : "", contas, r.formato === "nubank-fatura" ? true : undefined);
+    const destino = detectarDestino(
+      file.name,
+      r.formato === "nubank-fatura" ? "nubank fatura" : "",
+      contas,
+      r.formato === "nubank-fatura" ? true : undefined,
+    );
     const tipo = destino?.tipo === "cartao" ? "Fatura" : "Extrato";
-    return { rows: r.rows, destino, hint: destino ? `${tipo} ${destino.nome.split(" ")[0]} detectad${tipo === "Fatura" ? "a" : "o"}` : "CSV — escolha o destino" };
+    return {
+      rows: r.rows,
+      destino,
+      hint: destino
+        ? `${tipo} ${destino.nome.split(" ")[0]} detectad${tipo === "Fatura" ? "a" : "o"}`
+        : "CSV — escolha o destino",
+    };
   }
   if (ext === "pdf") {
     const linhas = await textoDoPDF(await file.arrayBuffer());
     const texto = linhas.join("\n");
-    const destino = detectarDestino(file.name, texto, contas, /FATURA|CARTAO DE CREDITO|CARTÃO DE CRÉDITO/i.test(texto) || undefined);
+    const destino = detectarDestino(
+      file.name,
+      texto,
+      contas,
+      /FATURA|CARTAO DE CREDITO|CARTÃO DE CRÉDITO/i.test(texto) || undefined,
+    );
     const alvo = contaEscolhida ?? destino;
-    const rows = parsePDFText(linhas, { cartao: alvo?.tipo === "cartao", fallbackYear: ano });
-    if (!rows.length) throw new ParseError("Não encontrei lançamentos neste PDF. Se o banco oferecer OFX ou CSV, prefira esses formatos.");
-    return { rows, destino, hint: destino ? `${destino.tipo === "cartao" ? "Fatura" : "Extrato"} ${destino.nome.split(" ")[0]} detectad${destino.tipo === "cartao" ? "a" : "o"}` : "PDF — escolha o destino" };
+    const rows = parsePDFText(linhas, {
+      cartao: alvo?.tipo === "cartao",
+      fallbackYear: ano,
+    });
+    if (!rows.length)
+      throw new ParseError(
+        "Não encontrei lançamentos neste PDF. Se o banco oferecer OFX ou CSV, prefira esses formatos.",
+      );
+    return {
+      rows,
+      destino,
+      hint: destino
+        ? `${destino.tipo === "cartao" ? "Fatura" : "Extrato"} ${destino.nome.split(" ")[0]} detectad${destino.tipo === "cartao" ? "a" : "o"}`
+        : "PDF — escolha o destino",
+    };
   }
   throw new ParseError("Formato não suportado — use PDF, OFX ou CSV");
 }

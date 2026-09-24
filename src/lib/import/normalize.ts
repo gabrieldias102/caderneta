@@ -1,6 +1,7 @@
 /** Normalização de estabelecimento e detecção de Pix, parcelas e movimentações neutras. */
 
-const strip = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+const strip = (s: string) =>
+  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
 
 /** Estabelecimentos conhecidos: padrão na descrição do banco → nome limpo. */
 const CONHECIDOS: [RegExp, string][] = [
@@ -14,7 +15,10 @@ const CONHECIDOS: [RegExp, string][] = [
   [/\bDISNEY\s*PLUS\b|\bDISNEYPLUS\b/, "Disney+"],
   [/\bAMAZON\s*PRIME\b|\bPRIME\s*VIDEO\b/, "Amazon Prime"],
   [/\bAMAZON\b|\bAMZN\b/, "Amazon"],
-  [/\bMERCADO\s*LIVRE\b|\bMERCADOLIVRE\b|\bMERCPAGO\b|\bMP\s*\*/, "Mercado Livre"],
+  [
+    /\bMERCADO\s*LIVRE\b|\bMERCADOLIVRE\b|\bMERCPAGO\b|\bMP\s*\*/,
+    "Mercado Livre",
+  ],
   [/\bMAGAZINE\s*LUIZA\b|\bMAGALU\b/, "Magalu"],
   [/\bDROGA\s*RAIA\b|\bDROGARAIA\b/, "Droga Raia"],
   [/\bDROGASIL\b/, "Drogasil"],
@@ -39,7 +43,8 @@ const CONHECIDOS: [RegExp, string][] = [
   [/\bSHOPEE\b/, "Shopee"],
 ];
 
-const RUIDO = /\b(LTDA|EIRELI|ME|EPP|S\/?A|SA|CIA|COMERCIO|COM|DE ALIMENTOS|BRASIL|BR|PAGAMENTOS?|INTERNET|ONLINE|WWW|COM\.BR)\b/g;
+const RUIDO =
+  /\b(LTDA|EIRELI|ME|EPP|S\/?A|SA|CIA|COMERCIO|COM|DE ALIMENTOS|BRASIL|BR|PAGAMENTOS?|INTERNET|ONLINE|WWW|COM\.BR)\b/g;
 const MINUSC = new Set(["de", "da", "do", "das", "dos", "e"]);
 
 function titleCase(s: string) {
@@ -47,7 +52,9 @@ function titleCase(s: string) {
     .toLowerCase()
     .split(/\s+/)
     .filter(Boolean)
-    .map((w, i) => (i > 0 && MINUSC.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .map((w, i) =>
+      i > 0 && MINUSC.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1),
+    )
     .join(" ");
 }
 
@@ -58,13 +65,19 @@ export interface Deteccao {
   tipo?: "fatura" | "transferencia";
 }
 
-const RE_PARCELA = /(?:PARC(?:ELA)?\.?\s*)?\b(\d{1,2})\s*(?:\/|DE)\s*(\d{1,2})\b\s*$/;
-const RE_PARCELA_MEIO = /\bPARC(?:ELA)?\.?\s*(\d{1,2})\s*(?:\/|DE)\s*(\d{1,2})\b/;
-const RE_FATURA = /PAGAMENTO\s+(RECEBIDO|DE\s+FATURA|FATURA|EFETUADO)|PGTO\.?\s*(DE\s+)?FATURA|PAG\s*FAT|PAGTO\s+CARTAO|PAGAMENTO\s+CARTAO/;
-const RE_TRANSF = /TRANSF(ERENCIA)?\.?\s+(ENTRE\s+CONTAS|MESMA\s+TITULARIDADE|PROPRIA)|\bTED\s+PROPRIA|APLICACAO|RESGATE/;
+const RE_PARCELA =
+  /(?:PARC(?:ELA)?\.?\s*)?\b(\d{1,2})\s*(?:\/|DE)\s*(\d{1,2})\b\s*$/;
+const RE_PARCELA_MEIO =
+  /\bPARC(?:ELA)?\.?\s*(\d{1,2})\s*(?:\/|DE)\s*(\d{1,2})\b/;
+const RE_FATURA =
+  /PAGAMENTO\s+(RECEBIDO|DE\s+FATURA|FATURA|EFETUADO)|PGTO\.?\s*(DE\s+)?FATURA|PAG\s*FAT|PAGTO\s+CARTAO|PAGAMENTO\s+CARTAO/;
+const RE_TRANSF =
+  /TRANSF(ERENCIA)?\.?\s+(ENTRE\s+CONTAS|MESMA\s+TITULARIDADE|PROPRIA)|\bTED\s+PROPRIA|APLICACAO|RESGATE/;
 const RE_PIX = /\bPIX\b/;
-const RE_PIX_PREFIXO = /^.*?\bPIX\b\s*(QRS\s+)?(ENV(IADO)?|REC(EBIDO)?|TRANSF(ERENCIA)?|ENVIO|RECEB\.?)?\s*[-:*]?\s*(PARA|DE)?\s*/;
-const RE_PJ = /\b(LTDA|EIRELI|ME|EPP|S\/?A|SA|CIA|COMERCIO|RESTAURANTE|MERCADO|LOJA|FARMACIA|POSTO|PADARIA|BAR|SUPERMERCADO|SERVICOS|IFOOD|UBER)\b|\d{2}\.\d{3}\.\d{3}\/\d{4}/;
+const RE_PIX_PREFIXO =
+  /^.*?\bPIX\b\s*(QRS\s+)?(ENV(IADO)?|REC(EBIDO)?|TRANSF(ERENCIA)?|ENVIO|RECEB\.?)?\s*[-:*]?\s*(PARA|DE)?\s*/;
+const RE_PJ =
+  /\b(LTDA|EIRELI|ME|EPP|S\/?A|SA|CIA|COMERCIO|RESTAURANTE|MERCADO|LOJA|FARMACIA|POSTO|PADARIA|BAR|SUPERMERCADO|SERVICOS|IFOOD|UBER)\b|\d{2}\.\d{3}\.\d{3}\/\d{4}/;
 const RE_CPF_MASC = /\*{3}\.?\d{3}\.?\d{3}-?\*{2}|\d{3}\.\d{3}\.\d{3}-\d{2}/;
 
 export function detectar(descricaoOriginal: string): Deteccao {
@@ -85,7 +98,8 @@ export function detectar(descricaoOriginal: string): Deteccao {
   let base = up;
   const pm = base.match(RE_PARCELA_MEIO) || base.match(RE_PARCELA);
   if (pm) {
-    const atual = Number(pm[1]), total = Number(pm[2]);
+    const atual = Number(pm[1]),
+      total = Number(pm[2]);
     if (total >= 2 && atual >= 1 && atual <= total && total <= 48) {
       out.parcela = { atual, total };
       base = base.replace(pm[0], " ").trim();
@@ -93,11 +107,21 @@ export function detectar(descricaoOriginal: string): Deteccao {
   }
 
   if (RE_PIX.test(base)) {
-    const nome = base.replace(RE_PIX_PREFIXO, "").replace(RE_CPF_MASC, "").replace(/[^A-Z\s.]/g, " ").replace(/\s+/g, " ").trim();
-    const pf = !RE_PJ.test(base) && (nome.split(" ").length >= 2 || RE_CPF_MASC.test(base));
+    const nome = base
+      .replace(RE_PIX_PREFIXO, "")
+      .replace(RE_CPF_MASC, "")
+      .replace(/[^A-Z\s.]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const pf =
+      !RE_PJ.test(base) &&
+      (nome.split(" ").length >= 2 || RE_CPF_MASC.test(base));
     out.pix = { pessoaFisica: pf };
     if (nome) {
-      out.estabelecimento = titleCase(nome).replace(/\b([A-Z])\b(?!\.)/g, "$1.");
+      out.estabelecimento = titleCase(nome).replace(
+        /\b([A-Z])\b(?!\.)/g,
+        "$1.",
+      );
       return out;
     }
   }
@@ -110,7 +134,10 @@ export function detectar(descricaoOriginal: string): Deteccao {
   }
 
   const limpo = base
-    .replace(/^(COMPRA\s+(CARTAO|NO\s+DEBITO|DEBITO|CREDITO)|COMPRA|DEBITO|PAG\*|PG\s*\*|EC\s*\*|PAGSEGURO\s*\*?|SUMUP\s*\*?|STONE\s*\*?|CIELO\s*\*?)\s*/, "")
+    .replace(
+      /^(COMPRA\s+(CARTAO|NO\s+DEBITO|DEBITO|CREDITO)|COMPRA|DEBITO|PAG\*|PG\s*\*|EC\s*\*|PAGSEGURO\s*\*?|SUMUP\s*\*?|STONE\s*\*?|CIELO\s*\*?)\s*/,
+      "",
+    )
     .replace(/\*.*$/, "")
     .replace(/\b\d{3,}\b/g, " ")
     .replace(/\s+-\s+.*$/, "")
@@ -118,7 +145,9 @@ export function detectar(descricaoOriginal: string): Deteccao {
     .replace(/[^A-Z0-9\s&'.]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  out.estabelecimento = titleCase(limpo || base).replace(/\bDo Ze\b/i, "do Zé").replace(/\bZe\b/, "Zé");
+  out.estabelecimento = titleCase(limpo || base)
+    .replace(/\bDo Ze\b/i, "do Zé")
+    .replace(/\bZe\b/, "Zé");
   return out;
 }
 

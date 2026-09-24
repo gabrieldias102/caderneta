@@ -12,7 +12,8 @@ export function proxy(req: NextRequest) {
   const publica = PUBLICAS.some((p) => req.nextUrl.pathname.startsWith(p));
   if (!logado && !publica) {
     const url = new URL("/entrar", req.url);
-    if (req.nextUrl.pathname !== "/") url.searchParams.set("volta", req.nextUrl.pathname);
+    if (req.nextUrl.pathname !== "/")
+      url.searchParams.set("volta", req.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
   if (logado && publica) return NextResponse.redirect(new URL("/", req.url));
@@ -22,5 +23,7 @@ export function proxy(req: NextRequest) {
 export const config = {
   // Não roda na API, nos arquivos do Next nem nos arquivos de public/. Lista as
   // extensões explicitamente: um padrão genérico ".*\\..*" deixava as páginas de fora.
-  matcher: ["/((?!api|_next/static|_next/image|.*\\.(?:svg|png|ico|csv|ofx|mjs|webmanifest)$).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|.*\\.(?:svg|png|ico|csv|ofx|mjs|webmanifest)$).*)",
+  ],
 };

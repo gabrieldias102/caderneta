@@ -2,7 +2,7 @@
 
 Guia para colocar a Caderneta no ar na Vercel com um Postgres gerenciado. O caminho recomendado é a **Neon** pela integração da própria Vercel: ela cria o banco, injeta as variáveis de ambiente e pode criar um banco separado para cada preview.
 
-> Supabase também funciona. Use a URL do *Transaction pooler* (porta 6543) como `DATABASE_URL` e a conexão direta (porta 5432) como `DATABASE_URL_UNPOOLED`.
+> Supabase também funciona. Use a URL do _Transaction pooler_ (porta 6543) como `DATABASE_URL` e a conexão direta (porta 5432) como `DATABASE_URL_UNPOOLED`.
 
 ## Visão geral
 
@@ -18,11 +18,11 @@ navegador ──► Vercel (gru1 · São Paulo)
 
 ## Variáveis de ambiente
 
-| Variável | Obrigatória | Onde é usada |
-|---|---|---|
-| `DATABASE_URL` | sim | App em execução. Deve ser a URL **com pooler**. |
+| Variável                | Obrigatória    | Onde é usada                                                                |
+| ----------------------- | -------------- | --------------------------------------------------------------------------- |
+| `DATABASE_URL`          | sim            | App em execução. Deve ser a URL **com pooler**.                             |
 | `DATABASE_URL_UNPOOLED` | só para migrar | `drizzle-kit migrate` (conexão direta). Se não existir, usa `DATABASE_URL`. |
-| `ANTHROPIC_API_KEY` | não | Resumo do mês por IA. Sem ela, a tela mostra um resumo montado localmente. |
+| `ANTHROPIC_API_KEY`     | não            | Resumo do mês por IA. Sem ela, a tela mostra um resumo montado localmente.  |
 
 `NODE_ENV=production` é definido pela Vercel. Com ele, o cookie de sessão passa a ser `Secure` e o cliente do Postgres usa poucas conexões por instância e desliga os prepared statements, que o pooler em modo transação não suporta (`src/db/index.ts`).
 
@@ -110,12 +110,12 @@ Ainda falta (em ordem de importância para quem guarda dados financeiros de terc
 
 ## Problemas comuns
 
-| Sintoma | Causa provável |
-|---|---|
-| Build ou primeira requisição falha com `DATABASE_URL não configurada` | Variável não definida para o ambiente (Production/Preview) daquele deploy. |
-| `relation "users" does not exist` | Migrações não rodaram no banco desse ambiente (passo 3). |
-| `prepared statement "…" does not exist` | `DATABASE_URL` aponta para um pooler e o app não está com `NODE_ENV=production`. |
-| Login funciona e logo pede para entrar de novo | Cookie `Secure` em HTTP puro. Use sempre a URL `https://`. |
+| Sintoma                                                                    | Causa provável                                                                         |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Build ou primeira requisição falha com `DATABASE_URL não configurada`      | Variável não definida para o ambiente (Production/Preview) daquele deploy.             |
+| `relation "users" does not exist`                                          | Migrações não rodaram no banco desse ambiente (passo 3).                               |
+| `prepared statement "…" does not exist`                                    | `DATABASE_URL` aponta para um pooler e o app não está com `NODE_ENV=production`.       |
+| Login funciona e logo pede para entrar de novo                             | Cookie `Secure` em HTTP puro. Use sempre a URL `https://`.                             |
 | Algo não carrega e o console mostra `Refused to … Content Security Policy` | Recurso de outro domínio (script, fonte, API) não liberado na CSP do `next.config.ts`. |
-| `403 Origem não permitida` | Requisição de outro domínio, ou proxy na frente da Vercel reescrevendo `Host`. |
-| Resumo por IA mostra a versão local | `ANTHROPIC_API_KEY` ausente ou inválida no ambiente. |
+| `403 Origem não permitida`                                                 | Requisição de outro domínio, ou proxy na frente da Vercel reescrevendo `Host`.         |
+| Resumo por IA mostra a versão local                                        | `ANTHROPIC_API_KEY` ausente ou inválida no ambiente.                                   |
