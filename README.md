@@ -1,6 +1,6 @@
 # Caderneta
 
-Controle financeiro pessoal (pt-BR, R$), sem conexão com banco: você importa o extrato ou a fatura (PDF, OFX ou CSV), revisa as categorias sugeridas e confirma. Implementação do design em [`design_handoff_caderneta/`](design_handoff_caderneta/README.md).
+Controle financeiro pessoal (pt-BR, R$), sem conexão com banco: você importa o extrato ou a fatura (PDF, OFX ou CSV), revisa as categorias sugeridas e confirma.
 
 Next.js 16 (App Router) + React 19 + TypeScript, Tailwind CSS 4 com os tokens do tema "Acolhedor" (claro/escuro), ícones Lucide. Backend no próprio Next (route handlers) com Postgres + Drizzle e login por e-mail e senha.
 
