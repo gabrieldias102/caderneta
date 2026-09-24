@@ -23,7 +23,7 @@ export default function Configuracoes() {
         stretch
         value={tab}
         onChange={setTab}
-        className="mb-5 max-w-[560px]"
+        className="mb-5 max-w-140"
         options={[
           ["cat", "Categorias"],
           ["rules", `Regras (${data.regras.length})`],

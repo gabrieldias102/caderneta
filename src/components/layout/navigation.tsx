@@ -48,12 +48,6 @@ export function Sidebar() {
         })}
       </nav>
       <div className="grid gap-1.5 border-t border-divider px-5 py-4">
-        <div className="text-2xs tracking-caps text-neutral-700 uppercase">
-          Sem conexão com o banco
-        </div>
-        <div className="text-xs text-neutral-700">
-          Tudo entra por arquivo ou à mão.
-        </div>
         <SyncBadge />
       </div>
     </aside>

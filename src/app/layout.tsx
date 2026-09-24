@@ -12,7 +12,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Caderneta",
   description:
-    "Controle financeiro pessoal — sem conexão com o banco. Importe o extrato ou a fatura e revise.",
+    "Controle financeiro pessoal. Importe o extrato ou a fatura e revise.",
   manifest: "/manifest.webmanifest",
 };
 
