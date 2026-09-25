@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { PALETA_IDS } from "@/lib/paletas";
 
 const id = z.string().min(1).max(120);
 const texto = (max = 300) => z.string().max(max);
@@ -79,7 +80,9 @@ export const prefsSchema = z.object({
   pix: z.boolean(),
   dup: z.boolean(),
   weekly: z.boolean(),
-  tema: z.enum(["sistema", "claro", "escuro"]),
+  tema: z.enum(["sistema", "claro", "escuro", "paleta"]),
+  // Ausente ou desconhecida vira a primeira paleta, sem rejeitar o salvamento.
+  paleta: z.enum(PALETA_IDS).catch("lavanda"),
   confStyle: z.enum(["medidor", "porcentagem"]),
 });
 

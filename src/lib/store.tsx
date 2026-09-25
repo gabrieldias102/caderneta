@@ -239,8 +239,9 @@ function useStore() {
     const el = document.documentElement;
     if (t === "claro") el.dataset.theme = "light";
     else if (t === "escuro") el.dataset.theme = "dark";
+    else if (t === "paleta") el.dataset.theme = data?.prefs.paleta ?? "lavanda";
     else delete el.dataset.theme;
-  }, [data?.prefs.tema]);
+  }, [data?.prefs.tema, data?.prefs.paleta]);
 
   const set = useCallback(
     (fn: (s: DataState) => DataState) => setData((s) => (s ? fn(s) : s)),

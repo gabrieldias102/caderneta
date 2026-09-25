@@ -18,6 +18,7 @@ export const PREFS_PADRAO: Prefs = {
   dup: true,
   weekly: false,
   tema: "sistema",
+  paleta: "lavanda",
   confStyle: "medidor",
 };
 

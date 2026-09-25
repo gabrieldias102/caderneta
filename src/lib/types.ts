@@ -1,3 +1,5 @@
+import type { PaletaId } from "./paletas";
+
 export type ISODate = string; // 'YYYY-MM-DD'
 
 export interface Categoria {
@@ -97,7 +99,9 @@ export interface Prefs {
   pix: boolean;
   dup: boolean;
   weekly: boolean;
-  tema: "sistema" | "claro" | "escuro";
+  /** "paleta" usa a paleta escolhida em `paleta` (ver lib/paletas). */
+  tema: "sistema" | "claro" | "escuro" | "paleta";
+  paleta: PaletaId;
   confStyle: "medidor" | "porcentagem";
 }
 

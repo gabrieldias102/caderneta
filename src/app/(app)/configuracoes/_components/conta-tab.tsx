@@ -6,6 +6,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/controls";
 import { FormError, Input } from "@/components/ui/form";
 import { CONTATO } from "@/lib/contato";
+import { PALETAS } from "@/lib/paletas";
 import { useApp } from "@/lib/store";
 import { SettingList, SettingRow } from "./setting-row";
 
@@ -32,7 +33,7 @@ export function ContaTab() {
     <SettingList>
       <SettingRow
         title="Tema"
-        description="Claro, escuro ou igual ao do aparelho"
+        description="Claro, escuro, igual ao do aparelho ou uma das outras paletas"
       >
         <Segmented
           name="tema"
@@ -42,8 +43,53 @@ export function ContaTab() {
             ["sistema", "Sistema"],
             ["claro", "Claro"],
             ["escuro", "Escuro"],
+            ["paleta", "Outras paletas"],
           ]}
         />
+        {p.tema === "paleta" && (
+          <div
+            role="radiogroup"
+            aria-label="Paleta"
+            className="grid grid-cols-4 gap-1.5 sm:gap-2"
+          >
+            {PALETAS.map((pl) => (
+              <label
+                key={pl.id}
+                className="grid cursor-pointer gap-2 rounded-md border border-divider bg-card p-1.5 hover:bg-surface has-checked:border-accent has-checked:outline-2 has-checked:-outline-offset-1 has-checked:outline-accent has-focus-visible:outline-2 has-focus-visible:outline-accent sm:p-2.5"
+              >
+                <input
+                  type="radio"
+                  name="paleta"
+                  className="sr-only"
+                  checked={p.paleta === pl.id}
+                  onChange={() => setPrefs({ paleta: pl.id })}
+                />
+                <span
+                  aria-hidden
+                  className="flex h-10 items-end gap-1 rounded-sm p-1.5 sm:h-12 sm:gap-1.5 sm:p-2"
+                  style={{ background: pl.amostra.bg }}
+                >
+                  <span
+                    className="h-full flex-1 rounded"
+                    style={{ background: pl.amostra.card }}
+                  />
+                  <span
+                    className="h-3/5 w-3 rounded sm:w-5"
+                    style={{ background: pl.amostra.accent }}
+                  />
+                </span>
+                <span className="text-xs leading-tight sm:text-sm">
+                  <span className="block font-semibold whitespace-nowrap">
+                    {pl.nome}
+                  </span>
+                  <span className="text-xs text-neutral-700">
+                    {pl.modo === "claro" ? "Clara" : "Escura"}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
       </SettingRow>
       <SettingRow
         title="Confiança na importação"

@@ -497,6 +497,7 @@ export function seedState(): DataState {
       dup: true,
       weekly: false,
       tema: "sistema",
+      paleta: "lavanda",
       confStyle: "medidor",
     },
     grupo: {
