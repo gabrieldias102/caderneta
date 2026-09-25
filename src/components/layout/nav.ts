@@ -1,5 +1,6 @@
 import {
   ChartColumn,
+  CircleHelp,
   House,
   List,
   SlidersHorizontal,
@@ -32,6 +33,7 @@ export const NAV: NavItem[] = [
   { href: "/contas", label: "Contas e cartões", Icon: Wallet },
   { href: "/compartilhadas", label: "Compartilhadas", Icon: Users },
   { href: "/configuracoes", label: "Configurações", Icon: SlidersHorizontal },
+  { href: "/ajuda", label: "Ajuda", Icon: CircleHelp },
 ];
 
 /** No celular, as quatro primeiras ficam na barra; o resto vai para "Mais". */

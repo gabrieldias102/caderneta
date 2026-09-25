@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Mail, MessageCircle } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/controls";
 import { FormError, Input } from "@/components/ui/form";
+import { CONTATO } from "@/lib/contato";
 import { useApp } from "@/lib/store";
 import { SettingList, SettingRow } from "./setting-row";
 
@@ -73,6 +75,26 @@ export function ContaTab() {
         action={<Button onClick={exportar}>Exportar</Button>}
       />
       <ExcluirConta />
+      <SettingRow
+        title="Fale comigo"
+        description="Dúvidas, sugestões ou algo que não funcionou? Mande uma mensagem."
+      >
+        <div className="flex flex-wrap gap-2">
+          <a href={`mailto:${CONTATO.email}`} className={buttonVariants()}>
+            <Mail size={18} />
+            {CONTATO.email}
+          </a>
+          <a
+            href={CONTATO.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants()}
+          >
+            <MessageCircle size={18} />
+            WhatsApp {CONTATO.telefone}
+          </a>
+        </div>
+      </SettingRow>
     </SettingList>
   );
 }

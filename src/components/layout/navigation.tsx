@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Ellipsis } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { CONTATO } from "@/lib/contato";
 import { MES, cap, monthOf } from "@/lib/format";
 import { useApp } from "@/lib/store";
 import { Logo } from "./logo";
@@ -53,6 +54,20 @@ export function Sidebar() {
       </nav>
       <div className="grid gap-1.5 border-t border-divider px-5 py-4">
         <SyncBadge />
+        <div className="flex flex-wrap gap-x-3 text-xs text-neutral-700">
+          <span>Fale comigo:</span>
+          <a href={`mailto:${CONTATO.email}`} className="text-fg">
+            E-mail
+          </a>
+          <a
+            href={CONTATO.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-fg"
+          >
+            WhatsApp
+          </a>
+        </div>
       </div>
     </aside>
   );
